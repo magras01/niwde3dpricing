@@ -526,11 +526,29 @@
             </div>
             <div class="field">
               <label class="field-label">Selling price <span class="field-hint">what you charge</span></label>
-              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-price" value="" min="0" step="5" class="has-prefix" oninput="calc()"></div>
+              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-price" value="" min="0" step="5" class="has-prefix" oninput="onPriceInput()"></div>
             </div>
             <div class="field">
               <label class="field-label">Target monthly units <span class="field-hint">your sales goal</span></label>
               <div class="input-wrap"><input type="text" inputmode="numeric" id="i-units" value="" min="1" step="10" oninput="calc()"></div>
+            </div>
+          </div>
+
+          <!-- TARGET PROFIT -->
+          <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
+            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:12px;font-family:var(--font-ui);">Target profit calculator</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;">
+              <div class="field">
+                <label class="field-label">I want to earn <span class="field-hint">profit per item</span></label>
+                <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-target-profit" placeholder="e.g. 50" class="has-prefix" oninput="calcTargetPrice()"></div>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;font-family:var(--font-ui);">Required selling price</div>
+                <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-family:var(--font-mono);font-size:15px;font-weight:600;color:var(--accent);" id="target-price-out">—</span>
+                  <button id="btn-apply-target" title="Apply to selling price" style="display:none;padding:4px 10px;background:var(--accent);border:none;border-radius:6px;font-family:var(--font-ui);font-size:11px;font-weight:600;color:#fff;cursor:pointer;" onclick="applyTargetPrice()">Use this</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -694,7 +712,7 @@ function updateSlider(sid, oid, hid, sfx='%', pre='', hintFn=null){
 
 
 // ── COMMA-FORMATTED INPUTS ────────────────────────────────────────
-const COMMA_INPUTS = ['i-printercost','i-lifespan','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units'];
+const COMMA_INPUTS = ['i-printercost','i-lifespan','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units','i-target-profit'];
 
 function rawVal(id){
   const v = document.getElementById(id).value.replace(/,/g,'');
@@ -1077,7 +1095,9 @@ function resetDefaults(){
   userSetup = {printercost:'',lifespan:'',printtime:'',items:'',watts:'',filament:'',filamentcost:'',elec:'',fail:0,platform:0,affiliate:0,tax:0,packaging:'',labor:'',price:'',units:'',name:''};
   activeProduct = null;
   resetMaterials();
-  ['i-printercost','i-lifespan','i-printtime','i-items','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units'].forEach(id=>g(id).value='');
+  ['i-printercost','i-lifespan','i-printtime','i-items','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units','i-target-profit'].forEach(id=>g(id).value='');
+  g('target-price-out').textContent = '—';
+  g('btn-apply-target').style.display = 'none';
   g('i-fail').value=0;      g('fail-out').textContent='0%';
   g('i-platform').value=0;  g('platform-out').textContent='0%';
   g('i-affiliate').value=0; g('affiliate-out').textContent='0%';
@@ -1250,6 +1270,67 @@ document.getElementById('import-file-input').addEventListener('change', function
   this.value = '';
 });
 document.getElementById('btn-add-material').addEventListener('click', ()=> addMaterial());
+
+// ── TARGET PROFIT ─────────────────────────────────────────────────
+function calcTargetPrice(){
+  const raw = g('i-target-profit').value.replace(/,/g,'');
+  const targetProfit = parseFloat(raw);
+  const out = g('target-price-out');
+  const btn = g('btn-apply-target');
+
+  if(!raw || isNaN(targetProfit)){
+    out.textContent = '—';
+    btn.style.display = 'none';
+    return;
+  }
+
+  // get current costs
+  const printerCost = n('i-printercost');
+  const lifespan    = n('i-lifespan') || 1;
+  const printTime   = n('i-printtime');
+  const items       = n('i-items') || 1;
+  const watts       = n('i-watts');
+  const filament    = n('i-filament');
+  const filCost     = n('i-filamentcost');
+  const elecCost    = n('i-elec');
+  const failRate    = p('i-fail');
+  const platform    = p('i-platform');
+  const affiliate   = p('i-affiliate');
+  const tax         = p('i-tax');
+  const packaging   = n('i-packaging');
+  const labor       = n('i-labor');
+
+  const elecPerPlate = (watts/1000) * printTime * elecCost;
+  const filPerPlate  = (filament/1000) * filCost;
+  const depPerPlate  = (printerCost/lifespan) * printTime;
+  const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
+  const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
+  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal();
+
+  // required price = (prodCost + targetProfit) / (1 - platform - affiliate - tax)
+  const denominator = Math.max(1 - platform - affiliate - tax, 0.01);
+  const requiredPrice = (prodCost + targetProfit) / denominator;
+
+  out.textContent = fmt(requiredPrice);
+  out.dataset.price = requiredPrice.toFixed(2);
+  btn.style.display = 'inline-block';
+}
+
+function applyTargetPrice(){
+  const price = parseFloat(g('target-price-out').dataset.price);
+  if(!price) return;
+  setFmt('i-price', price.toFixed(2));
+  calc();
+  showToast('Selling price updated!');
+}
+
+function onPriceInput(){
+  // clear target profit when user manually edits price
+  g('i-target-profit').value = '';
+  g('target-price-out').textContent = '—';
+  g('btn-apply-target').style.display = 'none';
+  calc();
+}
 
 // ── SHARE BUTTON ──────────────────────────────────────────────────
 document.getElementById('btn-share').addEventListener('click', async function(){
