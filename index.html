@@ -659,7 +659,22 @@
     </div>
   </div>
 
-  <footer>Built for 3D print sellers · All calculations in Philippine Peso (₱) · Data stays in your browser</footer>
+  <footer>
+    <div style="margin-bottom:16px;">
+      <a href="https://magras01.github.io/niwc" target="_blank" style="font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;font-family:var(--font-ui);">NIWDE3D Pricing Calculator</a>
+      <span style="color:var(--text3);margin:0 8px;">·</span>
+      <span style="color:var(--text3);">Free for all 3D print sellers</span>
+    </div>
+    <div style="margin-bottom:20px;">
+      <button id="btn-share" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:var(--navy);border:none;border-radius:100px;font-family:var(--font-ui);font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--navy)'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share this free tool
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);">
+      Made by NIWDE3D · Calculate print costs, platform fees, profit & ROI — free for every 3D print seller.
+    </div>
+  </footer>
 </div>
 
 <script>
@@ -1235,6 +1250,21 @@ document.getElementById('import-file-input').addEventListener('change', function
   this.value = '';
 });
 document.getElementById('btn-add-material').addEventListener('click', ()=> addMaterial());
+
+// ── SHARE BUTTON ──────────────────────────────────────────────────
+document.getElementById('btn-share').addEventListener('click', async function(){
+  const url = 'https://magras01.github.io/niwc';
+  const text = '🖨️ Free 3D Print Pricing Calculator by NIWDE3D — covers platform fees, affiliate commissions, machine depreciation, and more. Stop guessing your prices!';
+  if(navigator.share){
+    try {
+      await navigator.share({ title: 'NIWDE3D Pricing Calculator', text, url });
+    } catch(e){}
+  } else {
+    navigator.clipboard.writeText(url).then(()=>{
+      showToast('Link copied to clipboard!');
+    });
+  }
+});
 
 // ── MOBILE BUTTON LAYOUT ──────────────────────────────────────────
 function fixMobileButtons(){
