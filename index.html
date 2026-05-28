@@ -232,25 +232,25 @@
         </button>
       </div>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-ghost" id="btn-save-product">
+    <div class="header-actions" id="header-actions-bar">
+      <button class="btn btn-ghost action-btn" id="btn-save-product">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Save
       </button>
-      <button class="btn btn-ghost" id="btn-update-product" style="display:none;" onclick="updateProduct()">
+      <button class="btn btn-ghost action-btn" id="btn-update-product" style="display:none;" onclick="updateProduct()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Update
       </button>
-      <button class="btn btn-ghost" onclick="resetDefaults()">
+      <button class="btn btn-ghost action-btn" onclick="resetDefaults()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         Reset
       </button>
-      <button class="btn btn-ghost" onclick="document.getElementById('import-file-input').click()">
+      <button class="btn btn-ghost action-btn" onclick="document.getElementById('import-file-input').click()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Import
       </button>
       <input type="file" id="import-file-input" accept=".xlsx,.xls" style="display:none;">
-      <button class="btn btn-primary" onclick="exportData()">
+      <button class="btn btn-primary action-btn" onclick="exportData()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export
       </button>
@@ -1232,9 +1232,49 @@ function importData(file){
 
 document.getElementById('import-file-input').addEventListener('change', function(){
   importData(this.files[0]);
-  this.value = ''; // reset so same file can be re-imported
+  this.value = '';
 });
 document.getElementById('btn-add-material').addEventListener('click', ()=> addMaterial());
+
+// ── MOBILE BUTTON LAYOUT ──────────────────────────────────────────
+function fixMobileButtons(){
+  const bar = document.getElementById('header-actions-bar');
+  const header = document.querySelector('header');
+  if(!bar || !header) return;
+  if(window.innerWidth <= 640){
+    header.style.flexDirection = 'column';
+    header.style.gap = '12px';
+    bar.style.display = 'grid';
+    bar.style.gridTemplateColumns = '1fr 1fr';
+    bar.style.gap = '8px';
+    bar.style.width = '100%';
+    bar.style.paddingTop = '0';
+    bar.querySelectorAll('.action-btn').forEach(b=>{
+      b.style.justifyContent = 'center';
+      b.style.width = '100%';
+      b.style.minWidth = '0';
+      b.style.fontSize = '13px';
+      b.style.padding = '10px 8px';
+    });
+  } else {
+    header.style.flexDirection = '';
+    header.style.gap = '';
+    bar.style.display = '';
+    bar.style.gridTemplateColumns = '';
+    bar.style.gap = '';
+    bar.style.width = '';
+    bar.style.paddingTop = '';
+    bar.querySelectorAll('.action-btn').forEach(b=>{
+      b.style.justifyContent = '';
+      b.style.width = '';
+      b.style.minWidth = '';
+      b.style.fontSize = '';
+      b.style.padding = '';
+    });
+  }
+}
+window.addEventListener('resize', fixMobileButtons);
+fixMobileButtons();
 
 // ── PRICE COMPARISON TABLE ─────────────────────────────────────────
 const pricePoints = [];
