@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIWDE3D Pricing Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #eef2f8;
+    --surface: #ffffff;
+    --surface2: #f4f7fc;
+    --surface3: #e8edf7;
+    --border: rgba(59,97,198,0.1);
+    --border2: rgba(59,97,198,0.18);
+    --text: #1a2240;
+    --text2: #5a6589;
+    --text3: #7a86aa;
+    --accent: #3b61c6;
+    --accent2: #5b7fff;
+    --navy: #253580;
+    --green: #1ab87a;
+    --red: #e84040;
+    --yellow: #f5a623;
+    --font-ui: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(59,97,198,0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* HEADER */
+  header { margin-bottom: 40px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .header-left {}
+  .logo-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(59,97,198,0.08); border: 1px solid rgba(59,97,198,0.2); border-radius: 100px; padding: 4px 12px 4px 8px; margin-bottom: 12px; }
+  .logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(0.8)} }
+  .logo-text { font-size: 11.5px; font-weight: 600; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; font-family: var(--font-ui); }
+  h1 { font-size: clamp(26px, 3.5vw, 38px); font-weight: 800; line-height: 1.08; letter-spacing: -.03em; color: var(--navy); font-family: var(--font-ui); }
+  h1 span { color: var(--accent); }
+  .header-sub { margin-top: 10px; font-size: 14px; color: var(--text2); font-weight: 400; line-height: 1.6; letter-spacing: -.01em; }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; padding-top: 4px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px; border-radius: 9px; font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: -.01em; cursor: pointer; border: none; transition: all .15s; }
+  .btn-ghost { background: #fff; border: 1px solid var(--border2); color: var(--text2); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--accent); border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2e50b0; transform: translateY(-1px); }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* WARN BANNER */
+  .warn-banner { display: none; align-items: center; gap: 10px; background: rgba(232,64,64,0.07); border: 1px solid rgba(232,64,64,0.25); border-radius: 10px; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; font-weight: 500; letter-spacing: -.01em; color: #c02020; }
+  .warn-banner.show { display: flex; }
+  .warn-icon { font-size: 16px; }
+
+  /* KPI STRIP */
+  .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s; box-shadow: 0 2px 8px rgba(59,97,198,0.06); }
+  .kpi:hover { border-color: var(--border2); box-shadow: 0 4px 16px rgba(59,97,198,0.12); }
+  .kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 14px 14px 0 0; background: var(--kpi-color, var(--accent)); opacity: .6; }
+  .kpi-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text3); margin-bottom: 10px; font-family: var(--font-ui); }
+  .kpi-value { font-family: var(--font-mono); font-size: 24px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; }
+  .kpi-sub { font-size: 12.5px; color: var(--text3); margin-top: 5px; font-weight: 400; letter-spacing: -.01em; }
+  .kpi.green { --kpi-color: var(--green); }
+  .kpi.green .kpi-value { color: var(--green); }
+  .kpi.red { --kpi-color: var(--red); }
+  .kpi.red .kpi-value { color: var(--red); }
+  .kpi.yellow { --kpi-color: var(--yellow); }
+  .kpi.yellow .kpi-value { color: var(--yellow); }
+  .kpi.blue { --kpi-color: var(--accent); }
+  .kpi.blue .kpi-value { color: var(--accent); }
+
+  /* MAIN LAYOUT */
+  .main-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* SECTIONS */
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(59,97,198,0.06); }
+  .section-header { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; background: var(--surface2); }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; flex: 1; font-family: var(--font-ui); color: var(--text); }
+  .section-chevron { color: var(--text3); font-size: 12px; transition: transform .25s; }
+  .section.collapsed .section-chevron { transform: rotate(-90deg); }
+  .section.collapsed .section-body { display: none; }
+  .section-body { padding: 22px 24px; }
+
+  /* INPUTS */
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .input-grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: 12px; font-weight: 500; color: var(--text2); display: flex; align-items: center; justify-content: space-between; letter-spacing: -.01em; line-height: 1.4; }
+  .field-hint { font-size: 11.5px; color: var(--text3); font-weight: 400; letter-spacing: 0; }
+  .input-wrap { position: relative; }
+  .input-prefix { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--text3); pointer-events: none; }
+  .input-suffix { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--text3); pointer-events: none; }
+  input[type=number] {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-family: var(--font-mono); font-size: 13.5px; font-weight: 500;
+    padding: 10px 13px; outline: none; transition: border-color .15s, background .15s, box-shadow .15s;
+    -moz-appearance: textfield; letter-spacing: -.02em;
+  }
+  input[type=text] {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-family: var(--font-ui); font-size: 13.5px; font-weight: 500;
+    padding: 10px 13px; outline: none; transition: border-color .15s, background .15s, box-shadow .15s;
+    letter-spacing: -.01em;
+  }
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type=number]:focus, input[type=text]:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(59,97,198,0.1); outline: none; }
+  input.has-prefix { padding-left: 24px; }
+  input.has-suffix { padding-right: 28px; }
+
+  /* SLIDER FIELD */
+  .slider-field { display: flex; flex-direction: column; gap: 6px; }
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  input[type=range] {
+    flex: 1; -webkit-appearance: none; height: 4px; background: var(--surface3);
+    border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); border: 2px solid #fff; cursor: pointer;
+    transition: transform .1s;
+  }
+  input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.2); }
+  .slider-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent); min-width: 44px; text-align: right; letter-spacing: -.02em; }
+
+  /* SECTION COLORS */
+  .sec-printer .section-icon { background: rgba(59,97,198,0.1); }
+  .sec-material .section-icon { background: rgba(26,184,122,0.1); }
+  .sec-fees .section-icon { background: rgba(91,127,255,0.1); }
+  .sec-overhead .section-icon { background: rgba(245,166,35,0.1); }
+
+  /* RIGHT PANEL */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; position: sticky; top: 24px; box-shadow: 0 4px 20px rgba(59,97,198,0.1); }
+  .panel-header { padding: 22px 24px 18px; border-bottom: 1px solid var(--border); background: var(--navy); border-radius: 16px 16px 0 0; }
+  .panel-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,0.6); margin-bottom: 6px; font-family: var(--font-ui); }
+  .panel-price { font-family: var(--font-mono); font-size: 34px; font-weight: 600; color: #fff; letter-spacing: -.04em; line-height: 1.1; }
+  .panel-price-label { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 5px; font-weight: 400; letter-spacing: -.01em; }
+
+  /* COST BARS */
+  .bars { padding: 20px 24px 22px; background: var(--navy); }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-label { font-size: 12.5px; font-weight: 400; color: rgba(255,255,255,0.85); width: 132px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+  .bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width .4s cubic-bezier(.4,0,.2,1); }
+  .bar-amt { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,0.95); min-width: 60px; text-align: right; letter-spacing: -.02em; }
+
+  /* DIVIDER */
+  .panel-divider { height: 1px; background: var(--border); margin: 0; }
+
+  /* MONTHLY */
+  .monthly { padding: 18px 24px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .monthly-item { background: var(--surface2); border-radius: 10px; padding: 13px 14px; border: 1px solid var(--border); }
+  .monthly-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text2); margin-bottom: 7px; font-family: var(--font-ui); }
+  .monthly-val { font-family: var(--font-mono); font-size: 17px; font-weight: 600; letter-spacing: -.03em; color: var(--text); }
+
+  /* BREAKDOWN TABLE */
+  .breakdown { padding: 4px 24px 20px; }
+  .breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row.total { padding-top: 12px; }
+  .breakdown-name { font-size: 13px; font-weight: 400; color: var(--text2); letter-spacing: -.01em; }
+  .breakdown-val { font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: -.02em; }
+  .breakdown-row.total .breakdown-name { font-weight: 600; color: var(--text); font-size: 13px; letter-spacing: -.02em; }
+  .breakdown-row.total .breakdown-val { font-size: 15px; font-weight: 600; color: var(--accent); letter-spacing: -.03em; }
+
+  /* PRESET TABS */
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .preset-btn { padding: 7px 16px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 100px; font-family: var(--font-ui); font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; color: var(--text2); cursor: pointer; transition: all .15s; }
+  .preset-btn:hover, .preset-btn.active { background: rgba(59,97,198,0.1); border-color: var(--accent); color: var(--accent); }
+
+  /* ANIMATIONS */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .kpi { animation: fadeInUp .4s ease both; }
+  .kpi:nth-child(1){animation-delay:.05s} .kpi:nth-child(2){animation-delay:.1s}
+  .kpi:nth-child(3){animation-delay:.15s} .kpi:nth-child(4){animation-delay:.2s}
+  .kpi:nth-child(5){animation-delay:.25s} .kpi:nth-child(6){animation-delay:.3s}
+
+  .flash { animation: flashVal .3s ease; }
+  @keyframes flashVal { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* FOOTER */
+  footer { margin-top: 56px; text-align: center; font-size: 12.5px; color: var(--text2); letter-spacing: -.01em; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-left">
+      <div class="logo-tag"><div class="logo-dot"></div><span class="logo-text">Live calculator</span></div>
+      <h1>NIWDE3D<br><span>Pricing</span> Calculator</h1>
+      <p class="header-sub">All fields editable — results update instantly.</p>
+      <div class="presets" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <button class="preset-btn" onclick="applyPreset('current',this)">Your current setup</button>
+        <button class="preset-btn" onclick="applyPreset('shopee',this)">Shopee</button>
+        <button class="preset-btn" onclick="applyPreset('tiktok',this)">TikTok</button>
+        <button class="preset-btn" onclick="applyPreset('lazada',this)">Lazada</button>
+        <button class="preset-btn" onclick="applyPreset('wholesale',this)">Wholesale</button>
+        <div id="custom-preset-chips" style="display:contents;"></div>
+        <button id="btn-manage-presets" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;background:transparent;border:1px dashed var(--border2);border-radius:100px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add preset
+        </button>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="btn-save-product">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save
+      </button>
+      <button class="btn btn-ghost" id="btn-update-product" style="display:none;" onclick="updateProduct()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Update
+      </button>
+      <button class="btn btn-ghost" onclick="resetDefaults()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset
+      </button>
+      <button class="btn btn-ghost" onclick="document.getElementById('import-file-input').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Import
+      </button>
+      <input type="file" id="import-file-input" accept=".xlsx,.xls" style="display:none;">
+      <button class="btn btn-primary" onclick="exportData()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+    </div>
+  </header>
+
+  <!-- SAVE MODAL -->
+  <div id="save-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:100%;max-width:420px;margin:0 16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;font-family:var(--font-ui);">Save product</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;font-family:var(--font-ui);">Give this pricing setup a name to save it.</div>
+      <input type="text" id="save-name-input" placeholder="e.g. MDL Switch Mount v2"
+        style="width:100%;padding:11px 14px;font-family:var(--font-ui);font-size:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;color:var(--text);outline:none;margin-bottom:16px;"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''">
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="closeSaveModal()" style="padding:9px 20px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Cancel</button>
+        <button id="save-confirm-btn" style="padding:9px 20px;background:var(--accent);border:none;border-radius:8px;font-family:var(--font-ui);font-size:13px;font-weight:600;color:#fff;cursor:pointer;">Save product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINTER PRESET MODAL -->
+  <div id="printer-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:100%;max-width:420px;margin:0 16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;font-family:var(--font-ui);" id="printer-modal-title">Save printer</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;font-family:var(--font-ui);">Name this printer spec so you can load it anytime.</div>
+      <input type="text" id="printer-name-input" placeholder="e.g. Bambu Lab A1"
+        style="width:100%;padding:11px 14px;font-family:var(--font-ui);font-size:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;color:var(--text);outline:none;margin-bottom:16px;"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''">
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="closePrinterModal()" style="padding:9px 20px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Cancel</button>
+        <button id="printer-confirm-btn" style="padding:9px 20px;background:var(--accent);border:none;border-radius:8px;font-family:var(--font-ui);font-size:13px;font-weight:600;color:#fff;cursor:pointer;">Save printer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM PRESET MODAL -->
+  <div id="custom-preset-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:100%;max-width:460px;margin:0 16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;font-family:var(--font-ui);" id="cpm-title">Add preset</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;font-family:var(--font-ui);">Save your platform fee settings as a reusable preset.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div style="grid-column:span 2;">
+          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;font-family:var(--font-ui);">Preset name</div>
+          <input type="text" id="cpm-name" placeholder="e.g. Shopee Mall, TikTok LIVE…" style="width:100%;padding:10px 13px;font-family:var(--font-ui);font-size:13.5px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;" onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'" onblur="this.style.borderColor='';this.style.boxShadow=''">
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;font-family:var(--font-ui);">Platform fee (%)</div>
+          <input type="number" id="cpm-platform" placeholder="0" min="0" max="100" step="0.5" style="width:100%;padding:10px 13px;font-family:var(--font-mono);font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;-moz-appearance:textfield;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor=''">
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;font-family:var(--font-ui);">Affiliate commission (%)</div>
+          <input type="number" id="cpm-affiliate" placeholder="0" min="0" max="100" step="0.5" style="width:100%;padding:10px 13px;font-family:var(--font-mono);font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;-moz-appearance:textfield;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor=''">
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;font-family:var(--font-ui);">Tax rate (%)</div>
+          <input type="number" id="cpm-tax" placeholder="0" min="0" max="100" step="0.5" style="width:100%;padding:10px 13px;font-family:var(--font-mono);font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;-moz-appearance:textfield;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor=''">
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;font-family:var(--font-ui);">Default selling price (₱)</div>
+          <input type="number" id="cpm-price" placeholder="Optional" min="0" style="width:100%;padding:10px 13px;font-family:var(--font-mono);font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;-moz-appearance:textfield;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor=''">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="closeCustomPresetModal()" style="padding:9px 20px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Cancel</button>
+        <button id="cpm-confirm-btn" style="padding:9px 22px;background:var(--accent);border:none;border-radius:8px;font-family:var(--font-ui);font-size:13px;font-weight:600;color:#fff;cursor:pointer;">Save preset</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="saved-bar" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(59,97,198,0.06);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--font-ui);">Saved products</span>
+      <span style="font-size:11px;color:var(--text3);font-family:var(--font-ui);">Click to load</span>
+    </div>
+    <div id="saved-chips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+  </div>
+
+  <div class="warn-banner" id="warnBanner">
+    <span class="warn-icon">⚠</span>
+    <span id="warnText">Selling below break-even! You're losing money on each unit.</span>
+  </div>
+
+  <!-- PRODUCT NAME -->
+  <div style="margin-bottom:20px;">
+    <div class="field">
+      <label class="field-label">Product name <span class="field-hint">Optional label</span></label>
+      <div class="input-wrap">
+        <input type="text" id="i-name" value="" placeholder="e.g. Handlebar Mount v2">
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi blue"><div class="kpi-label">Production cost</div><div class="kpi-value" id="k-cost">₱0</div><div class="kpi-sub">per unit</div></div>
+    <div class="kpi blue"><div class="kpi-label">Break-even price</div><div class="kpi-value" id="k-bep">₱0</div><div class="kpi-sub">minimum to sell at</div></div>
+    <div class="kpi" id="k-suggested-card"><div class="kpi-label">Suggested price (3× rule)</div><div class="kpi-value" id="k-suggested">₱0</div><div class="kpi-sub" id="k-suggested-sub">3× production cost</div></div>
+    <div class="kpi" id="k-profit-card"><div class="kpi-label">Profit per item</div><div class="kpi-value" id="k-profit">₱0</div><div class="kpi-sub" id="k-profit-sub">net after all fees</div></div>
+    <div class="kpi" id="k-margin-card"><div class="kpi-label">Profit margin</div><div class="kpi-value" id="k-margin">0%</div><div class="kpi-sub">of selling price</div></div>
+    <div class="kpi" id="k-monthly-card"><div class="kpi-label">Monthly profit</div><div class="kpi-value" id="k-monthly">₱0</div><div class="kpi-sub" id="k-monthly-sub">at target volume</div></div>
+    <div class="kpi blue"><div class="kpi-label">Monthly revenue</div><div class="kpi-value" id="k-revenue">₱0</div><div class="kpi-sub">gross sales</div></div>
+  </div>
+
+  <div class="main-grid">
+    <div class="left-col">
+
+      <!-- PRINTER SPECS -->
+      <div class="section sec-printer" id="sec-printer">
+        <div class="section-header" onclick="toggleSection('sec-printer')">
+          <div class="section-icon">🖨️</div>
+          <div class="section-title">Printer Specs</div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <!-- Printer preset bar -->
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--font-ui);">Saved printers</span>
+              <button id="btn-save-printer" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(59,97,198,0.08);border:1px solid rgba(59,97,198,0.2);border-radius:100px;font-family:var(--font-ui);font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Save printer
+              </button>
+            </div>
+            <div id="printer-chips" style="display:flex;flex-wrap:wrap;gap:8px;min-height:24px;">
+              <span style="font-size:12px;color:var(--text3);font-family:var(--font-ui);">No printers saved yet.</span>
+            </div>
+          </div>
+          <div class="input-grid">
+            <div class="field">
+              <label class="field-label">Printer cost <span class="field-hint">one-time purchase</span></label>
+              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-printercost" value="" class="has-prefix" oninput="calc()"></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Printer lifespan <span class="field-hint">hours</span></label>
+              <div class="input-wrap"><input type="text" inputmode="numeric" id="i-lifespan" value="" oninput="calc()"><span class="input-suffix">h</span></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Printer power <span class="field-hint">watts</span></label>
+              <div class="input-wrap"><input type="text" inputmode="numeric" id="i-watts" value="" class="has-suffix" oninput="calc()"><span class="input-suffix">W</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRINT JOB -->
+      <div class="section sec-printer" id="sec-printjob">
+        <div class="section-header" onclick="toggleSection('sec-printjob')">
+          <div class="section-icon">📋</div>
+          <div class="section-title">Print Job</div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="input-grid">
+            <div class="field">
+              <label class="field-label">Print time <span class="field-hint">per plate</span></label>
+              <div class="input-wrap"><input type="number" id="i-printtime" value="" min="0.1" step="0.1" class="has-suffix" oninput="calc()"><span class="input-suffix">h</span></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Items per plate <span class="field-hint">units</span></label>
+              <div class="input-wrap"><input type="number" id="i-items" value="" min="1" step="1" oninput="calc()"></div>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <div class="slider-field">
+              <label class="field-label">Failed print rate <span class="field-hint" id="fail-hint">No fails</span></label>
+              <div class="slider-row">
+                <input type="range" id="i-fail" min="0" max="60" step="1" value="0" oninput="updateSlider('i-fail','fail-out','fail-hint','%','',failHint);calc()">
+                <span class="slider-val" id="fail-out">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATERIAL -->
+      <div class="section sec-material" id="sec-material">
+        <div class="section-header" onclick="toggleSection('sec-material')">
+          <div class="section-icon">🧱</div>
+          <div class="section-title">Material & Energy</div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="input-grid">
+            <div class="field">
+              <label class="field-label">Filament per plate <span class="field-hint">grams</span></label>
+              <div class="input-wrap"><input type="text" inputmode="numeric" id="i-filament" value="" class="has-suffix" oninput="calc()"><span class="input-suffix">g</span></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Filament cost <span class="field-hint">per kg</span></label>
+              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-filamentcost" value="" min="0" step="50" class="has-prefix" oninput="calc()"></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Electricity cost <span class="field-hint">per kWh</span></label>
+              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-elec" value="" class="has-prefix" oninput="calc()"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OTHER MATERIALS -->
+      <div class="section sec-material" id="sec-materials">
+        <div class="section-header" onclick="toggleSection('sec-materials')">
+          <div class="section-icon">🔩</div>
+          <div class="section-title">Hardware & Components</div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div id="materials-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
+          <button id="btn-add-material" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(59,97,198,0.08);border:1px dashed rgba(59,97,198,0.3);border-radius:8px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(59,97,198,0.14)'" onmouseout="this.style.background='rgba(59,97,198,0.08)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add material
+          </button>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--font-ui);">Total hardware & components</span>
+            <span style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--accent);" id="mat-total">₱0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEES -->
+      <div class="section sec-fees" id="sec-fees">
+        <div class="section-header" onclick="toggleSection('sec-fees')">
+          <div class="section-icon">💸</div>
+          <div class="section-title">Platform & Fees</div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="slider-field">
+              <label class="field-label">Platform fee <span class="field-hint">Shopee ~25%, TikTok ~8%, Lazada ~22%</span></label>
+              <div class="slider-row">
+                <input type="range" id="i-platform" min="0" max="40" step="1" value="0" oninput="updateSlider('i-platform','platform-out');calc()">
+                <span class="slider-val" id="platform-out">0%</span>
+              </div>
+            </div>
+            <div class="slider-field">
+              <label class="field-label">Affiliate commission <span class="field-hint">% paid to affiliates</span></label>
+              <div class="slider-row">
+                <input type="range" id="i-affiliate" min="0" max="30" step="1" value="0" oninput="updateSlider('i-affiliate','affiliate-out');calc()">
+                <span class="slider-val" id="affiliate-out">0%</span>
+              </div>
+            </div>
+            <div class="slider-field">
+              <label class="field-label">Tax rate <span class="field-hint">VAT or income tax</span></label>
+              <div class="slider-row">
+                <input type="range" id="i-tax" min="0" max="30" step="1" value="0" oninput="updateSlider('i-tax','tax-out');calc()">
+                <span class="slider-val" id="tax-out">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OVERHEAD & PRICING -->
+      <div class="section sec-overhead" id="sec-overhead">
+        <div class="section-header" onclick="toggleSection('sec-overhead')">
+          <div class="section-icon">🎯</div>
+          <div class="section-title">Overhead & Pricing</div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="input-grid">
+            <div class="field">
+              <label class="field-label">Packaging per item <span class="field-hint">bags, tape, labels</span></label>
+              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-packaging" value="" min="0" step="1" class="has-prefix" oninput="calc()"></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Labor per item <span class="field-hint">your time!</span></label>
+              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-labor" value="" min="0" step="5" class="has-prefix" oninput="calc()"></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Selling price <span class="field-hint">what you charge</span></label>
+              <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-price" value="" min="0" step="5" class="has-prefix" oninput="calc()"></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Target monthly units <span class="field-hint">your sales goal</span></label>
+              <div class="input-wrap"><input type="text" inputmode="numeric" id="i-units" value="" min="1" step="10" oninput="calc()"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Selling at</div>
+        <div class="panel-price" id="p-price">₱0.00</div>
+        <div class="panel-price-label" id="p-product">—</div>
+      </div>
+
+      <div class="bars">
+        <div style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,0.65);margin-bottom:16px;font-family:var(--font-ui);">Cost breakdown per item</div>
+        <div class="bar-row"><span class="bar-label">Electricity</span><div class="bar-track"><div class="bar-fill" id="bf-elec" style="background:#378ADD"></div></div><span class="bar-amt" id="ba-elec">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Filament</span><div class="bar-track"><div class="bar-fill" id="bf-fil" style="background:#2dcc8f"></div></div><span class="bar-amt" id="ba-fil">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Machine depr.</span><div class="bar-track"><div class="bar-fill" id="bf-dep" style="background:#8b5fff"></div></div><span class="bar-amt" id="ba-dep">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Failed print waste</span><div class="bar-track"><div class="bar-fill" id="bf-fail" style="background:#ff5252"></div></div><span class="bar-amt" id="ba-fail">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Packaging</span><div class="bar-track"><div class="bar-fill" id="bf-pack" style="background:#ffb84d"></div></div><span class="bar-amt" id="ba-pack">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Labor</span><div class="bar-track"><div class="bar-fill" id="bf-lab" style="background:#ff8c5a"></div></div><span class="bar-amt" id="ba-lab">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Platform fee</span><div class="bar-track"><div class="bar-fill" id="bf-plat" style="background:#888780"></div></div><span class="bar-amt" id="ba-plat">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Affiliate</span><div class="bar-track"><div class="bar-fill" id="bf-aff" style="background:#d4537e"></div></div><span class="bar-amt" id="ba-aff">₱0</span></div>
+        <div class="bar-row"><span class="bar-label">Hardware & Components</span><div class="bar-track"><div class="bar-fill" id="bf-mat" style="background:#20b2aa"></div></div><span class="bar-amt" id="ba-mat">₱0</span></div>
+      </div>
+
+      <div class="panel-divider"></div>
+
+      <div class="breakdown">
+        <div class="breakdown-row"><span class="breakdown-name">Selling price</span><span class="breakdown-val" id="bd-price">₱0</span></div>
+        <div class="breakdown-row"><span class="breakdown-name">− Platform fee</span><span class="breakdown-val" id="bd-plat" style="color:var(--red)">−₱0</span></div>
+        <div class="breakdown-row"><span class="breakdown-name">− Affiliate commission</span><span class="breakdown-val" id="bd-aff" style="color:var(--red)">−₱0</span></div>
+        <div class="breakdown-row"><span class="breakdown-name">− Tax</span><span class="breakdown-val" id="bd-tax" style="color:var(--red)">−₱0</span></div>
+        <div class="breakdown-row" style="background:rgba(59,97,198,0.06);border-radius:7px;padding:9px 8px;margin:4px 0;border-bottom:none;">
+          <span class="breakdown-name" style="font-weight:600;color:var(--text);">💳 You receive</span>
+          <span class="breakdown-val" id="bd-payout" style="color:var(--accent);font-size:14px;font-weight:600;">₱0</span>
+        </div>
+        <div class="breakdown-row"><span class="breakdown-name">− Production cost</span><span class="breakdown-val" id="bd-prod" style="color:var(--red)">−₱0</span></div>
+        <div class="breakdown-row"><span class="breakdown-name">− Hardware & Components</span><span class="breakdown-val" id="bd-mat" style="color:var(--red)">−₱0</span></div>
+        <div class="breakdown-row total"><span class="breakdown-name">= Net profit</span><span class="breakdown-val" id="bd-profit">₱0</span></div>
+      </div>
+
+      <div class="panel-divider"></div>
+
+      <div class="monthly">
+        <div class="monthly-item">
+          <div class="monthly-label">Monthly profit</div>
+          <div class="monthly-val" id="pm-profit">₱0</div>
+        </div>
+        <div class="monthly-item">
+          <div class="monthly-label">Monthly revenue</div>
+          <div class="monthly-val" id="pm-revenue">₱0</div>
+        </div>
+        <div class="monthly-item">
+          <div class="monthly-label">Break-even price</div>
+          <div class="monthly-val" id="pm-bep">₱0</div>
+        </div>
+        <div class="monthly-item">
+          <div class="monthly-label">Units to break even</div>
+          <div class="monthly-val" id="pm-units">—</div>
+        </div>
+        <div class="monthly-item" style="grid-column: span 2;">
+          <div class="monthly-label">Total monthly overhead</div>
+          <div class="monthly-val" id="pm-overhead">₱0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--font-ui);" id="pm-overhead-sub"></div>
+        </div>
+        <div class="monthly-item" style="grid-column: span 2;">
+          <div class="monthly-label">Printer ROI — months to pay off</div>
+          <div class="monthly-val" id="pm-roi">—</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--font-ui);" id="pm-roi-sub"></div>
+        </div>
+        <div class="monthly-item" style="grid-column: span 2;">
+          <div class="monthly-label">Monthly filament spend</div>
+          <div class="monthly-val" id="pm-filament">₱0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--font-ui);" id="pm-filament-sub"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE COMPARISON TABLE -->
+  <div class="section" style="margin-top:24px;" id="sec-pricetable">
+    <div class="section-header" onclick="toggleSection('sec-pricetable')">
+      <div class="section-icon" style="background:rgba(59,97,198,0.1);">📊</div>
+      <div class="section-title">Price Comparison Table</div>
+      <span class="section-chevron">▼</span>
+    </div>
+    <div class="section-body" style="padding:0;">
+      <div style="padding:16px 24px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);">
+        <span style="font-size:12px;font-weight:500;color:var(--text2);font-family:var(--font-ui);">Compare prices:</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="price-point-tags"></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="position:relative;">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:12px;color:var(--text3);">₱</span>
+            <input type="number" id="pt-input" placeholder="e.g. 200" min="0" step="5"
+              style="width:110px;padding:7px 10px 7px 22px;font-family:var(--font-mono);font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;-moz-appearance:textfield;"
+              onfocus="this.style.borderColor='var(--accent)'"
+              onblur="this.style.borderColor=''">
+          </div>
+          <button id="pt-add-btn" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:var(--accent);border:none;border-radius:8px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:#fff;cursor:pointer;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add
+          </button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="price-table" style="width:100%;border-collapse:collapse;font-family:var(--font-ui);font-size:13px;">
+          <thead>
+            <tr style="background:var(--surface2);">
+              <th style="padding:11px 24px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);">Selling Price</th>
+              <th style="padding:11px 16px;text-align:right;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);">You Receive</th>
+              <th style="padding:11px 16px;text-align:right;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);">Profit/item</th>
+              <th style="padding:11px 16px;text-align:right;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);">Margin</th>
+              <th style="padding:11px 16px;text-align:right;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);">Monthly Profit</th>
+              <th style="padding:11px 16px;text-align:center;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);">Status</th>
+              <th style="padding:11px 16px;text-align:center;border-bottom:1px solid var(--border);"></th>
+            </tr>
+          </thead>
+          <tbody id="price-table-body">
+            <tr><td colspan="7" style="padding:24px;text-align:center;color:var(--text3);font-size:13px;">Add a price point above to compare</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>Built for 3D print sellers · All calculations in Philippine Peso (₱) · Data stays in your browser</footer>
+</div>
+
+<script>
+function g(id){ return document.getElementById(id); }
+function n(id){ return parseFloat(g(id).value) || 0; }
+function p(id){ return n(id) / 100; }
+function fmt(v){ return '₱' + Math.abs(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+function fmtK(v){ return fmt(v); }
+
+function failHint(v){ return v==0?'No fails':v<=10?'Excellent!':v<=20?'1 in '+(100/v|0)+' plates fails':v<=40?'High — recalibrate printer':'Very high!'; }
+
+function updateSlider(sid, oid, hid, sfx='%', pre='', hintFn=null){
+  const v = g(sid).value;
+  g(oid).textContent = pre + v + sfx;
+  if(hid && hintFn) g(hid).textContent = hintFn(+v);
+}
+
+
+// ── COMMA-FORMATTED INPUTS ────────────────────────────────────────
+const COMMA_INPUTS = ['i-printercost','i-lifespan','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units'];
+
+function rawVal(id){
+  const v = document.getElementById(id).value.replace(/,/g,'');
+  return parseFloat(v) || 0;
+}
+
+function formatComma(val){
+  if(!val && val !== 0) return '';
+  const parts = parseFloat(val).toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
+
+function attachCommaInput(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', function(){
+    const raw = this.value.replace(/,/g,'');
+    if(raw === '' || raw === '-') return;
+    // allow typing decimals — don't reformat while user is mid-decimal
+    if(raw.endsWith('.') || raw.endsWith('.0') || raw.endsWith('.00') || raw.endsWith('.000')) return;
+    const num = parseFloat(raw);
+    if(isNaN(num)) return;
+    const pos = this.selectionStart;
+    const oldLen = this.value.length;
+    this.value = formatComma(raw);
+    const newLen = this.value.length;
+    this.setSelectionRange(pos + (newLen - oldLen), pos + (newLen - oldLen));
+  });
+}
+
+COMMA_INPUTS.forEach(attachCommaInput);
+
+// Override n() to strip commas before parsing
+const _origN = window.n;
+function n(id){
+  const el = document.getElementById(id);
+  if(!el) return 0;
+  return parseFloat(el.value.replace(/,/g,'')) || 0;
+}
+
+// ── OTHER MATERIALS ───────────────────────────────────────────────
+let matId = 0;
+const materials = {}; // { id: {name, cost} }
+
+function addMaterial(name='', cost=''){
+  const id = ++matId;
+  materials[id] = { name, cost: parseFloat(cost)||0 };
+  const row = document.createElement('div');
+  row.id = 'mat-row-' + id;
+  row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+  row.innerHTML = `
+    <input type="text" placeholder="Material name" value="${name}"
+      style="flex:1;font-family:var(--font-ui);font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);outline:none;"
+      oninput="materials[${id}].name=this.value"
+      onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'"
+      onblur="this.style.borderColor='';this.style.boxShadow=''">
+    <div style="position:relative;width:110px;flex-shrink:0;">
+      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:13px;color:var(--text3);pointer-events:none;">₱</span>
+      <input type="text" inputmode="numeric" placeholder="0" value="${cost ? formatComma(cost) : ''}"
+        style="width:100%;padding:9px 10px 9px 22px;font-family:var(--font-mono);font-size:13px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;"
+        oninput="
+          const raw=this.value.replace(/,/g,'');
+          if(raw===''||raw==='.'||raw.endsWith('.')||raw.endsWith('.0')||raw.endsWith('.00')){materials[${id}].cost=parseFloat(raw)||0;updateMatTotal();calc();return;}
+          if(isNaN(parseFloat(raw))) return;
+          const pos=this.selectionStart,oldLen=this.value.length;
+          this.value=formatComma(raw);
+          const newLen=this.value.length;
+          this.setSelectionRange(pos+(newLen-oldLen),pos+(newLen-oldLen));
+          materials[${id}].cost=parseFloat(raw)||0;updateMatTotal();calc()"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''">
+    </div>
+    <button onclick="removeMaterial(${id})" title="Remove"
+      style="width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(232,64,64,0.08);border:1px solid rgba(232,64,64,0.2);border-radius:7px;cursor:pointer;color:var(--red);transition:all .15s;"
+      onmouseover="this.style.background='rgba(232,64,64,0.16)'" onmouseout="this.style.background='rgba(232,64,64,0.08)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>`;
+  document.getElementById('materials-list').appendChild(row);
+  updateMatTotal();
+}
+
+function removeMaterial(id){
+  delete materials[id];
+  const row = document.getElementById('mat-row-' + id);
+  if(row) row.remove();
+  updateMatTotal();
+  calc();
+}
+
+function updateMatTotal(){
+  const total = Object.values(materials).reduce((s,m)=>s+(m.cost||0), 0);
+  g('mat-total').textContent = '₱' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+}
+
+function getMatTotal(){
+  return Object.values(materials).reduce((s,m)=>s+(m.cost||0), 0);
+}
+
+function resetMaterials(){
+  Object.keys(materials).forEach(id => {
+    delete materials[id];
+    const row = document.getElementById('mat-row-' + id);
+    if(row) row.remove();
+  });
+  updateMatTotal();
+}
+
+// ── CALC ──────────────────────────────────────────────────────────
+function calc(){
+  const printerCost = n('i-printercost');
+  const lifespan    = n('i-lifespan') || 1;
+  const printTime   = n('i-printtime');
+  const items       = n('i-items') || 1;
+  const watts       = n('i-watts');
+  const filament    = n('i-filament');
+  const filCost     = n('i-filamentcost');
+  const elecCost    = n('i-elec');
+  const failRate    = p('i-fail');
+  const platform    = p('i-platform');
+  const affiliate   = p('i-affiliate');
+  const tax         = p('i-tax');
+  const packaging   = n('i-packaging');
+  const labor       = n('i-labor');
+  const price       = n('i-price');
+  const units       = n('i-units');
+
+  const elecPerPlate = (watts/1000) * printTime * elecCost;
+  const filPerPlate  = (filament/1000) * filCost;
+  const depPerPlate  = (printerCost/lifespan) * printTime;
+  const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
+  const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
+  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal();
+
+  const platFee  = price * platform;
+  const affFee   = price * affiliate;
+  const taxFee   = price * tax;
+  const netRev   = price - platFee - affFee - taxFee;
+  const profit   = netRev - prodCost;
+  const margin   = price > 0 ? profit/price : 0;
+  const bep      = prodCost / (Math.max(1 - platform - affiliate - tax, 0.01));
+  const monthlyProfit = profit * units;
+  const monthlyRev    = price * units;
+  const bepUnits = profit > 0 ? 0 : (profit < 0 ? '∞' : '—');
+
+  // KPIs
+  setKpi('k-cost', fmt(prodCost));
+  setKpi('k-bep', fmt(bep));
+  setKpi('k-profit', fmt(profit));
+  setKpi('k-margin', (margin*100).toFixed(1)+'%');
+  setKpi('k-monthly', fmtK(monthlyProfit));
+  setKpi('k-revenue', fmtK(monthlyRev));
+
+  // Suggested price — 3x production cost rule
+  const suggested = prodCost * 3;
+  setKpi('k-suggested', fmt(suggested));
+  const suggestedCard = g('k-suggested-card');
+  const suggestedSub  = g('k-suggested-sub');
+  if(price <= 0 || prodCost <= 0){
+    suggestedCard.className = 'kpi blue';
+    suggestedSub.textContent = '3× production cost';
+  } else if(price >= suggested){
+    suggestedCard.className = 'kpi green';
+    suggestedSub.textContent = `You're ${fmt(price - suggested)} above suggested`;
+  } else {
+    suggestedCard.className = 'kpi yellow';
+    suggestedSub.textContent = `Your price is ${fmt(suggested - price)} below suggested`;
+  }
+
+  const profitCard = g('k-profit-card');
+  profitCard.className = 'kpi ' + (profit > 0 ? 'green' : profit < 0 ? 'red' : 'yellow');
+  const marginCard = g('k-margin-card');
+  marginCard.className = 'kpi ' + (margin >= 0.2 ? 'green' : margin < 0 ? 'red' : 'yellow');
+  const monthCard = g('k-monthly-card');
+  monthCard.className = 'kpi ' + (monthlyProfit > 0 ? 'green' : monthlyProfit < 0 ? 'red' : 'yellow');
+
+  // Panel price
+  g('p-price').textContent = fmt(price);
+  g('p-product').textContent = g('i-name').value || '—';
+
+  // Breakdown
+  g('bd-price').textContent = fmt(price);
+  g('bd-plat').textContent  = '−'+fmt(platFee);
+  g('bd-aff').textContent   = '−'+fmt(affFee);
+  g('bd-tax').textContent   = '−'+fmt(taxFee);
+  g('bd-payout').textContent = fmt(netRev);
+  g('bd-prod').textContent  = '−'+fmt(prodCost);
+  g('bd-mat').textContent   = getMatTotal() > 0 ? '−'+fmt(getMatTotal()) : '₱0';
+  g('bd-profit').textContent = (profit >= 0 ? '' : '−') + fmt(profit);
+  g('bd-profit').style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // Monthly
+  g('pm-profit').textContent  = fmtK(monthlyProfit);
+  g('pm-profit').style.color  = monthlyProfit >= 0 ? 'var(--green)' : 'var(--red)';
+  g('pm-revenue').textContent = fmtK(monthlyRev);
+  g('pm-bep').textContent     = fmt(bep);
+  g('pm-units').textContent   = profit <= 0 ? '∞' : Math.ceil(prodCost / profit) + ' u';
+  // Total monthly overhead = packaging + labor + platform fees + affiliate fees + tax per unit × units
+  const monthlyOverhead = (packaging + labor + platFee + affFee + taxFee) * units;
+  g('pm-overhead').textContent = fmtK(monthlyOverhead);
+  g('pm-overhead-sub').textContent = `labor + packaging + fees × ${units} units`;
+
+  // ROI — months until printer cost is recovered from monthly profit
+  const roiEl    = g('pm-roi');
+  const roiSub   = g('pm-roi-sub');
+  if(monthlyProfit <= 0 || printerCost <= 0){
+    roiEl.textContent = '∞';
+    roiEl.style.color = 'var(--red)';
+    roiSub.textContent = monthlyProfit <= 0 ? 'Not profitable yet' : '';
+  } else {
+    const months = printerCost / monthlyProfit;
+    roiEl.style.color = months <= 6 ? 'var(--green)' : months <= 12 ? 'var(--yellow)' : 'var(--text)';
+    if(months < 1){
+      roiEl.textContent = '< 1 month';
+      roiSub.textContent = 'Printer pays off this month';
+    } else {
+      const yrs = Math.floor(months / 12);
+      const mos = Math.round(months % 12);
+      roiEl.textContent = Math.ceil(months) + ' months';
+      roiSub.textContent = yrs > 0 ? `${yrs}y ${mos}m · ₱${printerCost.toLocaleString()} ÷ ₱${Math.round(monthlyProfit).toLocaleString()}/mo` : `₱${printerCost.toLocaleString()} ÷ ₱${Math.round(monthlyProfit).toLocaleString()}/mo`;
+    }
+  }
+
+  // Monthly filament spend
+  // plates needed per month = units / items per plate (accounting for fail rate)
+  const platesNeeded = (units / items) / (1 - failRate);
+  const monthlyFilamentGrams = platesNeeded * filament;
+  const monthlyFilamentCost  = (monthlyFilamentGrams / 1000) * filCost;
+  g('pm-filament').textContent = fmtK(monthlyFilamentCost);
+  g('pm-filament-sub').textContent = monthlyFilamentGrams > 0
+    ? `${Math.round(monthlyFilamentGrams)}g · ${(monthlyFilamentGrams/1000).toFixed(2)}kg needed`
+    : '';
+
+  // Bars
+  const comps = [
+    {id:'elec', val: elecPerPlate/items},
+    {id:'fil',  val: filPerPlate/items},
+    {id:'dep',  val: depPerPlate/items},
+    {id:'fail', val: wastePerItem},
+    {id:'pack', val: packaging},
+    {id:'lab',  val: labor},
+    {id:'plat', val: platFee},
+    {id:'aff',  val: affFee},
+    {id:'mat',  val: getMatTotal()},
+  ];
+  const maxV = Math.max(...comps.map(c=>c.val), 1);
+  comps.forEach(c => {
+    g('bf-'+c.id).style.width = Math.max(0,(c.val/maxV)*100).toFixed(1)+'%';
+    g('ba-'+c.id).textContent = fmt(c.val);
+  });
+
+  // Warning
+  const warn = g('warnBanner');
+  if(price < bep && price > 0){
+    warn.classList.add('show');
+    g('warnText').textContent = `Selling at ${fmt(price)} but break-even is ${fmt(bep)}. You're losing ${fmt(bep-price)} per unit.`;
+  } else {
+    warn.classList.remove('show');
+  }
+
+  // Refresh price comparison table
+  if(typeof renderPriceTable === 'function') renderPriceTable();
+}
+
+function setKpi(id, val){
+  const el = g(id);
+  if(el.textContent !== val){
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+    el.textContent = val;
+  }
+}
+
+function toggleSection(id){
+  g(id).classList.toggle('collapsed');
+}
+
+// userSetup holds whatever the user has typed — starts empty
+let userSetup = {printercost:'',lifespan:'',printtime:'',items:'',watts:'',filament:'',filamentcost:'',elec:'',fail:0,platform:0,affiliate:0,tax:0,packaging:'',labor:'',price:'',units:'',name:''};
+
+const PRESETS = {
+  shopee:    {printercost:65000,lifespan:5000,printtime:1,items:2,watts:1000,filament:20,filamentcost:650,elec:10,fail:20,platform:25,affiliate:0,tax:0,packaging:5,labor:20,price:150,units:50},
+  tiktok:    {printercost:65000,lifespan:5000,printtime:1,items:2,watts:1000,filament:20,filamentcost:650,elec:10,fail:20,platform:8,affiliate:15,tax:0,packaging:10,labor:20,price:199,units:80},
+  lazada:    {printercost:65000,lifespan:5000,printtime:1,items:2,watts:1000,filament:20,filamentcost:650,elec:10,fail:20,platform:22,affiliate:5,tax:0,packaging:5,labor:20,price:160,units:60},
+  wholesale: {printercost:65000,lifespan:5000,printtime:1,items:2,watts:1000,filament:20,filamentcost:650,elec:10,fail:15,platform:0,affiliate:0,tax:0,packaging:3,labor:10,price:90,units:200},
+};
+
+// ── PRINTER PRESETS ───────────────────────────────────────────────
+
+function captureUserSetup(){
+  const strip = id => g(id).value.replace(/,/g,'');
+  return {
+    printercost: strip('i-printercost'),
+    lifespan:    strip('i-lifespan'),
+    printtime:   g('i-printtime').value,
+    items:       g('i-items').value,
+    watts:       strip('i-watts'),
+    filament:    strip('i-filament'),
+    filamentcost:strip('i-filamentcost'),
+    elec:        strip('i-elec'),
+    fail:        parseInt(g('i-fail').value)||0,
+    platform:    parseInt(g('i-platform').value)||0,
+    affiliate:   parseInt(g('i-affiliate').value)||0,
+    tax:         parseInt(g('i-tax').value)||0,
+    packaging:   strip('i-packaging'),
+    labor:       strip('i-labor'),
+    price:       strip('i-price'),
+    units:       strip('i-units'),
+    name:        g('i-name').value,
+  };
+}
+
+function setFmt(id, val){
+  // set value with comma formatting for comma inputs, plain for others
+  const el = g(id);
+  if(!el) return;
+  if(val === '' || val === null || val === undefined){ el.value = ''; return; }
+  el.value = ['i-printercost','i-lifespan','i-filamentcost','i-packaging','i-labor','i-price','i-units'].includes(id)
+    ? formatComma(val)
+    : val;
+}
+
+function applyFields(p){
+  setFmt('i-printercost',  p.printercost);
+  setFmt('i-lifespan',     p.lifespan);
+  g('i-printtime').value    = p.printtime;
+  g('i-items').value        = p.items;
+  setFmt('i-watts',        p.watts);
+  setFmt('i-filament',     p.filament);
+  setFmt('i-filamentcost', p.filamentcost);
+  setFmt('i-elec',         p.elec);
+  g('i-fail').value         = p.fail;      g('fail-out').textContent      = p.fail+'%';
+  g('i-platform').value     = p.platform;  g('platform-out').textContent  = p.platform+'%';
+  g('i-affiliate').value    = p.affiliate; g('affiliate-out').textContent = p.affiliate+'%';
+  g('i-tax').value          = p.tax;       g('tax-out').textContent       = p.tax+'%';
+  setFmt('i-packaging',    p.packaging);
+  setFmt('i-labor',        p.labor);
+  setFmt('i-price',        p.price);
+  setFmt('i-units',        p.units);
+  if(p.name !== undefined){ g('i-name').value = p.name; g('p-product').textContent = p.name || '—'; }
+  calc();
+}
+
+function applyPreset(key, btn){
+  // only save userSetup if currently on the 'current' tab
+  const activeBtn = document.querySelector('.preset-btn.active');
+  const activeKey = activeBtn ? activeBtn.getAttribute('onclick').match(/'(\w+)'/)?.[1] : null;
+  if(activeKey === 'current') userSetup = captureUserSetup();
+
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if(key === 'current'){
+    applyFields(userSetup);
+    return;
+  }
+
+  const p = PRESETS[key];
+  setFmt('i-printercost', p.printercost);
+  setFmt('i-lifespan',    p.lifespan);
+  g('i-printtime').value   = p.printtime;
+  g('i-items').value       = p.items;
+  setFmt('i-watts',       p.watts);
+  setFmt('i-filament',    p.filament);
+  setFmt('i-filamentcost', p.filamentcost);
+  setFmt('i-elec',        p.elec);
+  g('i-fail').value        = p.fail;  g('fail-out').textContent = p.fail+'%';
+  g('i-platform').value    = p.platform;  g('platform-out').textContent = p.platform+'%';
+  g('i-affiliate').value   = p.affiliate; g('affiliate-out').textContent = p.affiliate+'%';
+  g('i-tax').value         = p.tax;       g('tax-out').textContent = p.tax+'%';
+  setFmt('i-packaging',    p.packaging);
+  setFmt('i-labor',        p.labor);
+  setFmt('i-price',        p.price);
+  setFmt('i-units',        p.units);
+  calc();
+}
+
+function resetDefaults(){
+  userSetup = {printercost:'',lifespan:'',printtime:'',items:'',watts:'',filament:'',filamentcost:'',elec:'',fail:0,platform:0,affiliate:0,tax:0,packaging:'',labor:'',price:'',units:'',name:''};
+  activeProduct = null;
+  resetMaterials();
+  ['i-printercost','i-lifespan','i-printtime','i-items','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units'].forEach(id=>g(id).value='');
+  g('i-fail').value=0;      g('fail-out').textContent='0%';
+  g('i-platform').value=0;  g('platform-out').textContent='0%';
+  g('i-affiliate').value=0; g('affiliate-out').textContent='0%';
+  g('i-tax').value=0;       g('tax-out').textContent='0%';
+  g('i-name').value=''; g('p-product').textContent='—';
+  g('p-price').textContent='₱0.00';
+  ['k-cost','k-bep','k-profit','k-monthly','k-revenue','k-suggested'].forEach(id=>g(id).textContent='₱0');
+  g('k-margin').textContent='0%';
+  g('k-profit-card').className='kpi blue'; g('k-margin-card').className='kpi blue'; g('k-monthly-card').className='kpi blue'; g('k-suggested-card').className='kpi blue';
+  g('k-suggested-sub').textContent='3× production cost';
+  ['elec','fil','dep','fail','pack','lab','plat','aff','mat'].forEach(id=>{g('bf-'+id).style.width='0%';g('ba-'+id).textContent='₱0';});
+  g('bd-price').textContent='₱0'; g('bd-plat').textContent='−₱0'; g('bd-aff').textContent='−₱0'; g('bd-tax').textContent='−₱0'; g('bd-payout').textContent='₱0'; g('bd-prod').textContent='−₱0'; g('bd-mat').textContent='₱0'; g('bd-profit').textContent='₱0';
+  g('pm-profit').textContent='₱0'; g('pm-revenue').textContent='₱0'; g('pm-bep').textContent='₱0'; g('pm-units').textContent='—'; g('pm-overhead').textContent='₱0'; g('pm-overhead-sub').textContent=''; g('pm-roi').textContent='—'; g('pm-roi').style.color=''; g('pm-roi-sub').textContent=''; g('pm-filament').textContent='₱0'; g('pm-filament-sub').textContent='';
+  g('warnBanner').classList.remove('show');
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  renderSavedBar();
+}
+
+function exportData(){
+  const productName = g('i-name').value || 'NIWDE3D Export';
+  const fileName = (g('i-name').value || 'niwde3d-pricing') + '.xlsx';
+
+  // Build hardware & components rows
+  const matRows = Object.values(materials).map(m => [m.name || '—', m.cost]);
+
+  const inputsData = [
+    ['NIWDE3D Pricing Calculator', ''],
+    ['Product', productName],
+    ['', ''],
+    ['INPUTS', ''],
+    ['Printer Cost (₱)',           n('i-printercost')],
+    ['Printer Lifespan (h)',        n('i-lifespan')],
+    ['Print Time (h)',              n('i-printtime')],
+    ['Items per Plate',             n('i-items')],
+    ['Printer Power (W)',           n('i-watts')],
+    ['Filament per Plate (g)',      n('i-filament')],
+    ['Filament Cost (₱/kg)',        n('i-filamentcost')],
+    ['Electricity Cost (₱/kWh)',    n('i-elec')],
+    ['Failed Print Rate (%)',       n('i-fail')],
+    ['Platform Fee (%)',            n('i-platform')],
+    ['Affiliate Commission (%)',    n('i-affiliate')],
+    ['Tax Rate (%)',                n('i-tax')],
+    ['Packaging (₱)',              n('i-packaging')],
+    ['Labor (₱)',                  n('i-labor')],
+    ['Selling Price (₱)',          n('i-price')],
+    ['Monthly Units Target',        n('i-units')],
+    ['', ''],
+    ['HARDWARE & COMPONENTS', ''],
+    ['Name', 'Cost (₱)'],
+    ...matRows,
+    ['', ''],
+    ['RESULTS', ''],
+    ['Production Cost (₱)',        g('k-cost').textContent],
+    ['Break-even Price (₱)',       g('k-bep').textContent],
+    ['Suggested Price 3× (₱)',     g('k-suggested').textContent],
+    ['You Receive (₱)',            g('bd-payout').textContent],
+    ['Profit per Item (₱)',        g('k-profit').textContent],
+    ['Profit Margin',              g('k-margin').textContent],
+    ['Monthly Gross Profit',       g('pm-profit').textContent],
+    ['Monthly Revenue',            g('pm-revenue').textContent],
+    ['Monthly Overhead',           g('pm-overhead').textContent],
+    ['Monthly Filament Spend',     g('pm-filament').textContent],
+    ['Printer ROI',                g('pm-roi').textContent],
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(inputsData);
+
+  // Column widths
+  ws['!cols'] = [{wch:32},{wch:22}];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Pricing');
+
+  // Price comparison sheet if there are price points
+  if(pricePoints.length > 0){
+    const headers = ['Selling Price','You Receive','Profit/Item','Margin','Monthly Profit','Status'];
+    const ptRows = pricePoints.map(v => {
+      const d = calcRowData(v);
+      const status = v < d.bep ? 'Loss' : v < d.prodCost*2 ? 'Low' : v >= d.prodCost*3 ? 'Great' : 'OK';
+      return [v, +d.netRev.toFixed(2), +d.profit.toFixed(2), (d.margin*100).toFixed(1)+'%', +d.monthly.toFixed(2), status];
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet([headers, ...ptRows]);
+    ws2['!cols'] = [{wch:14},{wch:14},{wch:14},{wch:10},{wch:16},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Price Comparison');
+  }
+
+  XLSX.writeFile(wb, fileName);
+}
+
+function importData(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+      // Build a key→value map from col A → col B
+      const map = {};
+      rows.forEach(row => {
+        if(row[0] && row[1] !== '') map[String(row[0]).trim()] = row[1];
+      });
+
+      const set = (id, key) => {
+        const v = map[key];
+        if(v === undefined || v === '') return;
+        setFmt(id, v);
+      };
+      const setPlain = (id, key) => {
+        const v = map[key];
+        if(v === undefined || v === '') return;
+        g(id).value = v;
+      };
+
+      // Product name
+      if(map['Product']){ g('i-name').value = map['Product']; g('p-product').textContent = map['Product']; }
+
+      // Inputs
+      set('i-printercost',  'Printer Cost (₱)');
+      set('i-lifespan',     'Printer Lifespan (h)');
+      setPlain('i-printtime', 'Print Time (h)');
+      setPlain('i-items',     'Items per Plate');
+      set('i-watts',        'Printer Power (W)');
+      set('i-filament',     'Filament per Plate (g)');
+      set('i-filamentcost', 'Filament Cost (₱/kg)');
+      set('i-elec',         'Electricity Cost (₱/kWh)');
+      set('i-packaging',    'Packaging (₱)');
+      set('i-labor',        'Labor (₱)');
+      set('i-price',        'Selling Price (₱)');
+      set('i-units',        'Monthly Units Target');
+
+      // Sliders
+      if(map['Failed Print Rate (%)'] !== undefined){
+        g('i-fail').value = map['Failed Print Rate (%)']; g('fail-out').textContent = map['Failed Print Rate (%)']+'%';
+      }
+      if(map['Platform Fee (%)'] !== undefined){
+        g('i-platform').value = map['Platform Fee (%)']; g('platform-out').textContent = map['Platform Fee (%)']+'%';
+      }
+      if(map['Affiliate Commission (%)'] !== undefined){
+        g('i-affiliate').value = map['Affiliate Commission (%)']; g('affiliate-out').textContent = map['Affiliate Commission (%)']+'%';
+      }
+      if(map['Tax Rate (%)'] !== undefined){
+        g('i-tax').value = map['Tax Rate (%)']; g('tax-out').textContent = map['Tax Rate (%)']+'%';
+      }
+
+      // Hardware & components — find rows between "Name" header and next blank
+      resetMaterials();
+      let inMat = false;
+      rows.forEach(row => {
+        if(String(row[0]).trim() === 'Name' && String(row[1]).trim() === 'Cost (₱)'){ inMat = true; return; }
+        if(inMat){
+          if(!row[0] && !row[1]){ inMat = false; return; }
+          if(row[0] && row[0] !== 'RESULTS') addMaterial(row[0], row[1]);
+        }
+      });
+
+      calc();
+      showToast('Import successful!');
+    } catch(err){
+      showToast('Import failed — check file format.');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('import-file-input').addEventListener('change', function(){
+  importData(this.files[0]);
+  this.value = ''; // reset so same file can be re-imported
+});
+document.getElementById('btn-add-material').addEventListener('click', ()=> addMaterial());
+
+// ── PRICE COMPARISON TABLE ─────────────────────────────────────────
+const pricePoints = [];
+
+function addPricePoint(){
+  const input = g('pt-input');
+  const val = parseFloat(input.value);
+  if(!val || val <= 0) return;
+  if(pricePoints.includes(val)){ input.value=''; return; }
+  pricePoints.push(val);
+  pricePoints.sort((a,b)=>a-b);
+  input.value = '';
+  renderPriceTags();
+  renderPriceTable();
+}
+
+function removePricePoint(val){
+  const idx = pricePoints.indexOf(val);
+  if(idx > -1) pricePoints.splice(idx, 1);
+  renderPriceTags();
+  renderPriceTable();
+}
+
+function renderPriceTags(){
+  const wrap = g('price-point-tags');
+  wrap.innerHTML = pricePoints.map(v => `
+    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(59,97,198,0.1);border:1px solid rgba(59,97,198,0.2);border-radius:100px;font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--accent);">
+      ₱${v}
+      <span onclick="removePricePoint(${v})" style="cursor:pointer;color:var(--text3);font-size:14px;line-height:1;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</span>
+    </span>`).join('');
+}
+
+function calcRowData(price){
+  const printerCost = n('i-printercost');
+  const lifespan    = n('i-lifespan') || 1;
+  const printTime   = n('i-printtime');
+  const items       = n('i-items') || 1;
+  const watts       = n('i-watts');
+  const filament    = n('i-filament');
+  const filCost     = n('i-filamentcost');
+  const elecCost    = n('i-elec');
+  const failRate    = p('i-fail');
+  const platform    = p('i-platform');
+  const affiliate   = p('i-affiliate');
+  const tax         = p('i-tax');
+  const packaging   = n('i-packaging');
+  const labor       = n('i-labor');
+  const units       = n('i-units');
+
+  const elecPerPlate = (watts/1000) * printTime * elecCost;
+  const filPerPlate  = (filament/1000) * filCost;
+  const depPerPlate  = (printerCost/lifespan) * printTime;
+  const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
+  const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
+  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal();
+  const bep          = prodCost / (Math.max(1 - platform - affiliate - tax, 0.01));
+
+  const platFee  = price * platform;
+  const affFee   = price * affiliate;
+  const taxFee   = price * tax;
+  const netRev   = price - platFee - affFee - taxFee;
+  const profit   = netRev - prodCost;
+  const margin   = price > 0 ? profit / price : 0;
+  const monthly  = profit * units;
+
+  return { price, netRev, profit, margin, monthly, bep, prodCost };
+}
+
+function renderPriceTable(){
+  const tbody = g('price-table-body');
+  if(pricePoints.length === 0){
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--text3);font-size:13px;">Add a price point above to compare</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pricePoints.map((v, i) => {
+    const d = calcRowData(v);
+    const isCurrentPrice = Math.abs(v - n('i-price')) < 0.01;
+    const rowBg = isCurrentPrice ? 'rgba(59,97,198,0.05)' : (i%2===0 ? '#fff' : 'var(--surface2)');
+    const profitColor = d.profit > 0 ? 'var(--green)' : d.profit < 0 ? 'var(--red)' : 'var(--text3)';
+    const marginColor = d.margin >= 0.2 ? 'var(--green)' : d.margin < 0 ? 'var(--red)' : 'var(--yellow)';
+
+    let status, statusBg, statusColor;
+    if(v < d.bep){
+      status = '🔴 Loss'; statusBg = 'rgba(232,64,64,0.08)'; statusColor = 'var(--red)';
+    } else if(v < d.prodCost * 2){
+      status = '🟡 Low'; statusBg = 'rgba(245,166,35,0.1)'; statusColor = 'var(--yellow)';
+    } else if(v >= d.prodCost * 3){
+      status = '🟢 Great'; statusBg = 'rgba(26,184,122,0.1)'; statusColor = 'var(--green)';
+    } else {
+      status = '🔵 OK'; statusBg = 'rgba(59,97,198,0.08)'; statusColor = 'var(--accent)';
+    }
+
+    return `<tr style="background:${rowBg};border-bottom:1px solid var(--border);">
+      <td style="padding:12px 24px;">
+        <span style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--text);">₱${v.toFixed(2)}</span>
+        ${isCurrentPrice ? '<span style="margin-left:6px;font-size:10px;font-weight:600;color:var(--accent);background:rgba(59,97,198,0.1);padding:2px 7px;border-radius:100px;font-family:var(--font-ui);">current</span>' : ''}
+      </td>
+      <td style="padding:12px 16px;text-align:right;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--accent);">${fmt(d.netRev)}</td>
+      <td style="padding:12px 16px;text-align:right;font-family:var(--font-mono);font-size:13px;font-weight:600;color:${profitColor};">${d.profit >= 0 ? '' : '−'}${fmt(d.profit)}</td>
+      <td style="padding:12px 16px;text-align:right;font-family:var(--font-mono);font-size:13px;font-weight:500;color:${marginColor};">${(d.margin*100).toFixed(1)}%</td>
+      <td style="padding:12px 16px;text-align:right;font-family:var(--font-mono);font-size:13px;font-weight:500;color:${profitColor};">${fmtK(d.monthly)}</td>
+      <td style="padding:12px 16px;text-align:center;">
+        <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:100px;background:${statusBg};color:${statusColor};font-family:var(--font-ui);">${status}</span>
+      </td>
+      <td style="padding:12px 16px;text-align:center;">
+        <span onclick="removePricePoint(${v})" style="cursor:pointer;font-size:16px;color:var(--text3);line-height:1;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── CUSTOM PRESETS ────────────────────────────────────────────────
+const LS_CUSTOM_PRESETS = '3dprint_custom_presets';
+let editingCustomPresetId = null;
+
+function getCustomPresets(){ try { return JSON.parse(localStorage.getItem(LS_CUSTOM_PRESETS)) || []; } catch(e){ return []; } }
+function setCustomPresets(arr){ localStorage.setItem(LS_CUSTOM_PRESETS, JSON.stringify(arr)); }
+
+function openCustomPresetModal(id=null){
+  editingCustomPresetId = id;
+  const presets = getCustomPresets();
+  const p = id !== null ? presets.find(x=>x.id===id) : null;
+  g('cpm-title').textContent        = p ? 'Update' : 'Add preset';
+  g('cpm-confirm-btn').textContent  = p ? 'Update' : 'Save preset';
+  g('cpm-name').value               = p ? p.name      : '';
+  g('cpm-platform').value           = p ? p.platform  : '';
+  g('cpm-affiliate').value          = p ? p.affiliate : '';
+  g('cpm-tax').value                = p ? p.tax       : '';
+  g('cpm-price').value              = p ? p.price     : '';
+  g('custom-preset-modal').style.display = 'flex';
+  setTimeout(()=> g('cpm-name').focus(), 50);
+}
+
+function closeCustomPresetModal(){
+  g('custom-preset-modal').style.display = 'none';
+  editingCustomPresetId = null;
+}
+
+function confirmCustomPreset(){
+  const name = g('cpm-name').value.trim();
+  if(!name) return;
+  const presets = getCustomPresets();
+  const entry = {
+    id:        editingCustomPresetId !== null ? editingCustomPresetId : Date.now(),
+    name,
+    platform:  parseFloat(g('cpm-platform').value)  || 0,
+    affiliate: parseFloat(g('cpm-affiliate').value) || 0,
+    tax:       parseFloat(g('cpm-tax').value)       || 0,
+    price:     parseFloat(g('cpm-price').value)     || 0,
+  };
+  if(editingCustomPresetId !== null){
+    const idx = presets.findIndex(x=>x.id===editingCustomPresetId);
+    if(idx > -1) presets[idx] = entry;
+  } else {
+    presets.push(entry);
+  }
+  setCustomPresets(presets);
+  closeCustomPresetModal();
+  renderCustomPresetChips();
+  showToast(`"${name}" ${editingCustomPresetId !== null ? 'updated' : 'saved'}!`);
+}
+
+function applyCustomPreset(id, btnEl){
+  const presets = getCustomPresets();
+  const p = presets.find(x=>x.id===id);
+  if(!p) return;
+  const activeBtn = document.querySelector('.preset-btn.active');
+  const activeKey = activeBtn ? activeBtn.getAttribute('onclick')?.match(/'(\w+)'/)?.[1] : null;
+  if(activeKey === 'current') userSetup = captureUserSetup();
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.custom-preset-btn').forEach(b=>b.classList.remove('active'));
+  btnEl.classList.add('active');
+  g('i-platform').value    = p.platform;  g('platform-out').textContent  = p.platform+'%';
+  g('i-affiliate').value   = p.affiliate; g('affiliate-out').textContent = p.affiliate+'%';
+  g('i-tax').value         = p.tax;       g('tax-out').textContent       = p.tax+'%';
+  if(p.price) setFmt('i-price', p.price);
+  calc();
+}
+
+function deleteCustomPreset(id){
+  const presets = getCustomPresets().filter(x=>x.id!==id);
+  setCustomPresets(presets);
+  renderCustomPresetChips();
+}
+
+function renderCustomPresetChips(){
+  const presets = getCustomPresets();
+  const wrap = g('custom-preset-chips');
+  wrap.innerHTML = presets.map(p => `
+    <div style="display:inline-flex;align-items:center;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;overflow:hidden;">
+      <button class="custom-preset-btn" onclick="applyCustomPreset(${p.id},this)"
+        style="padding:7px 14px;background:transparent;border:none;font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;letter-spacing:-.01em;transition:color .15s;"
+        onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">${p.name}</button>
+      <button onclick="openCustomPresetModal(${p.id})" title="Edit"
+        style="padding:5px 7px;background:transparent;border:none;border-left:1px solid var(--border);cursor:pointer;color:var(--text3);font-size:12px;line-height:1;"
+        onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text3)'">✎</button>
+      <button onclick="deleteCustomPreset(${p.id})" title="Delete"
+        style="padding:5px 8px;background:transparent;border:none;border-left:1px solid var(--border);cursor:pointer;color:var(--text3);font-size:13px;line-height:1;"
+        onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</button>
+    </div>`).join('');
+}
+
+// ── PRINTER PRESETS ─────────────────────────────────────────── (first)
+const LS_PRINTERS = '3dprint_printers';
+let editingPrinterName = null;
+
+function getSavedPrinters(){ try { return JSON.parse(localStorage.getItem(LS_PRINTERS)) || {}; } catch(e){ return {}; } }
+function setSavedPrinters(data){ localStorage.setItem(LS_PRINTERS, JSON.stringify(data)); }
+
+function openPrinterModal(editName=null){
+  editingPrinterName = editName;
+  const modal = g('printer-modal');
+  const input = g('printer-name-input');
+  g('printer-modal-title').textContent = editName ? 'Update' : 'Save printer';
+  g('printer-confirm-btn').textContent = editName ? 'Update' : 'Save printer';
+  input.value = editName || '';
+  modal.style.display = 'flex';
+  setTimeout(()=> input.focus(), 50);
+}
+
+function closePrinterModal(){
+  g('printer-modal').style.display = 'none';
+  editingPrinterName = null;
+}
+
+function confirmSavePrinter(){
+  const name = g('printer-name-input').value.trim();
+  if(!name) return;
+  const data = getSavedPrinters();
+  if(editingPrinterName && editingPrinterName !== name){
+    // rename — copy data under new key, delete old
+    data[name] = { ...data[editingPrinterName], name };
+    delete data[editingPrinterName];
+  } else {
+    data[name] = {
+      name,
+      cost:     g('i-printercost').value.replace(/,/g,''),
+      lifespan: g('i-lifespan').value.replace(/,/g,''),
+      watts:    g('i-watts').value.replace(/,/g,''),
+    };
+  }
+  setSavedPrinters(data);
+  closePrinterModal();
+  renderPrinterChips();
+  showToast(`"${name}" ${editingPrinterName ? 'updated' : 'saved'}!`);
+}
+
+function loadPrinter(name){
+  const data = getSavedPrinters();
+  const p = data[name];
+  if(!p) return;
+  setFmt('i-printercost', p.cost);
+  setFmt('i-lifespan',    p.lifespan);
+  setFmt('i-watts',       p.watts);
+  calc();
+  renderPrinterChips(name);
+  showToast(`"${name}" loaded!`);
+}
+
+function deletePrinter(name){
+  const data = getSavedPrinters();
+  delete data[name];
+  setSavedPrinters(data);
+  renderPrinterChips();
+}
+
+function renderPrinterChips(activeName=null){
+  const data = getSavedPrinters();
+  const keys = Object.keys(data);
+  const wrap = g('printer-chips');
+  if(keys.length === 0){
+    wrap.innerHTML = '<span style="font-size:12px;color:var(--text3);font-family:var(--font-ui);">No printers saved yet.</span>';
+    return;
+  }
+  wrap.innerHTML = keys.map(name => {
+    const isActive = name === activeName;
+    return `<div style="display:inline-flex;align-items:center;background:${isActive?'rgba(59,97,198,0.1)':'var(--surface2)'};border:1px solid ${isActive?'var(--accent)':'var(--border2)'};border-radius:100px;overflow:hidden;">
+      <button onclick="loadPrinter('${name.replace(/'/g,"\\'")}')" style="padding:5px 12px;background:transparent;border:none;font-family:var(--font-ui);font-size:12px;font-weight:600;color:${isActive?'var(--accent)':'var(--text)'};cursor:pointer;">${name}</button>
+      <button onclick="openPrinterModal('${name.replace(/'/g,"\\'")}');" title="Edit" style="padding:5px 8px;background:transparent;border:none;border-left:1px solid var(--border);cursor:pointer;color:var(--text3);font-size:12px;line-height:1;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text3)'">✎</button>
+      <button onclick="deletePrinter('${name.replace(/'/g,"\\'")}');" title="Delete" style="padding:5px 8px;background:transparent;border:none;border-left:1px solid var(--border);cursor:pointer;color:var(--text3);font-size:13px;line-height:1;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</button>
+    </div>`;
+  }).join('');
+}
+
+// ── SAVE / LOAD ───────────────────────────────────────────────────
+const LS_KEY = '3dprint_products';
+
+function getSaved(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch(e){ return {}; }
+}
+
+function setSaved(data){
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function openSaveModal(){
+  const modal = document.getElementById('save-modal');
+  const input = document.getElementById('save-name-input');
+  input.value = g('i-name').value || '';
+  modal.style.display = 'flex';
+  setTimeout(()=> input.focus(), 50);
+}
+
+function closeSaveModal(){
+  document.getElementById('save-modal').style.display = 'none';
+}
+
+function confirmSave(){
+  const name = document.getElementById('save-name-input').value.trim();
+  if(!name) return;
+  const data = getSaved();
+  data[name] = {
+    ...captureUserSetup(),
+    name,
+    savedAt: new Date().toLocaleDateString('en-PH', {month:'short',day:'numeric',year:'numeric'}),
+    matSnapshot: Object.values(materials).map(m=>({name:m.name,cost:m.cost})),
+  };
+  setSaved(data);
+  closeSaveModal();
+  renderSavedBar();
+  showToast(`"${name}" saved!`);
+}
+
+function loadProduct(name){
+  const data = getSaved();
+  const p = data[name];
+  if(!p) return;
+  // restore materials
+  resetMaterials();
+  if(p.matSnapshot) p.matSnapshot.forEach(m => addMaterial(m.name, m.cost));
+  userSetup = p;
+  applyFields(p);
+  activeProduct = name;
+  // mark current tab active
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.preset-btn').classList.add('active');
+  renderSavedBar();
+  showToast(`"${name}" loaded!`);
+}
+
+function deleteProduct(name){
+  const data = getSaved();
+  delete data[name];
+  setSaved(data);
+  if(activeProduct === name) activeProduct = null;
+  renderSavedBar();
+}
+
+// track which saved product is currently loaded
+let activeProduct = null;
+
+function updateProduct(){
+  if(!activeProduct) return;
+  const data = getSaved();
+  const newName = captureUserSetup().name || activeProduct;
+  // remove old key if name changed
+  if(newName !== activeProduct){
+    delete data[activeProduct];
+  }
+  data[newName] = {
+    ...captureUserSetup(),
+    name: newName,
+    savedAt: new Date().toLocaleDateString('en-PH', {month:'short',day:'numeric',year:'numeric'}),
+    matSnapshot: Object.values(materials).map(m=>({name:m.name,cost:m.cost})),
+  };
+  setSaved(data);
+  activeProduct = newName;
+  renderSavedBar();
+  showToast(`"${newName}" updated!`);
+}
+
+function renderSavedBar(){
+  const data = getSaved();
+  const keys = Object.keys(data);
+  const bar  = document.getElementById('saved-bar');
+  const chips = document.getElementById('saved-chips');
+
+  // show/hide update button
+  const updateBtn = document.getElementById('btn-update-product');
+  if(updateBtn) updateBtn.style.display = activeProduct ? 'inline-flex' : 'none';
+
+  if(keys.length === 0){ bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  chips.innerHTML = keys.map(name => {
+    const p = data[name];
+    const isActive = name === activeProduct;
+    return `<div style="display:inline-flex;align-items:center;gap:0;background:${isActive ? 'rgba(59,97,198,0.1)' : 'var(--surface2)'};border:1px solid ${isActive ? 'var(--accent)' : 'var(--border2)'};border-radius:100px;overflow:hidden;">
+      <button onclick="loadProduct('${name.replace(/'/g,"\\'")}')" style="padding:6px 14px;background:transparent;border:none;font-family:var(--font-ui);font-size:12px;font-weight:600;color:${isActive ? 'var(--accent)' : 'var(--text)'};cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:1px;">
+        <span>${name}</span>
+        <span style="font-size:10px;color:var(--text3);font-weight:400;">${p.savedAt||''}</span>
+      </button>
+      <button onclick="deleteProduct('${name.replace(/'/g,"\\'")}')" title="Delete"
+        style="padding:6px 10px;background:transparent;border:none;border-left:1px solid var(--border);cursor:pointer;color:var(--text3);font-size:15px;line-height:1;"
+        onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</button>
+    </div>`;
+  }).join('');
+}
+
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;font-family:var(--font-ui);font-size:13px;font-weight:500;padding:10px 22px;border-radius:100px;box-shadow:0 4px 20px rgba(0,0,0,0.2);opacity:0;transition:all .3s ease;pointer-events:none;z-index:9999;white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._hide);
+  t._hide = setTimeout(()=>{
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2500);
+}
+
+// close modal on backdrop click
+document.getElementById('save-modal').addEventListener('click', function(e){
+  if(e.target === this) closeSaveModal();
+});
+
+document.getElementById('btn-save-product').addEventListener('click', openSaveModal);
+document.getElementById('save-confirm-btn').addEventListener('click', confirmSave);
+document.getElementById('save-name-input').addEventListener('keydown', e => { if(e.key === 'Enter') confirmSave(); });
+
+// custom presets
+document.getElementById('btn-manage-presets').addEventListener('click', ()=> openCustomPresetModal());
+document.getElementById('cpm-confirm-btn').addEventListener('click', confirmCustomPreset);
+document.getElementById('cpm-name').addEventListener('keydown', e=>{ if(e.key==='Enter') confirmCustomPreset(); });
+g('custom-preset-modal').addEventListener('click', function(e){ if(e.target===this) closeCustomPresetModal(); });
+
+// printer presets
+document.getElementById('btn-save-printer').addEventListener('click', ()=> openPrinterModal());
+document.getElementById('printer-confirm-btn').addEventListener('click', confirmSavePrinter);
+document.getElementById('printer-name-input').addEventListener('keydown', e=>{ if(e.key==='Enter') confirmSavePrinter(); });
+g('printer-modal').addEventListener('click', function(e){ if(e.target===this) closePrinterModal(); });
+
+// price comparison
+document.getElementById('pt-add-btn').addEventListener('click', addPricePoint);
+document.getElementById('pt-input').addEventListener('keydown', e => { if(e.key === 'Enter') addPricePoint(); });
+
+// init
+renderSavedBar();
+renderCustomPresetChips();
+renderPrinterChips();
+
+calc();
+</script>
+</body>
+</html>
