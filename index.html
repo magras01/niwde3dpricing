@@ -6,8 +6,6 @@
 <title>NIWDE3D Pricing Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Google AdSense — replace ca-pub-XXXXXXXXXXXXXXXX with your publisher ID -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -210,11 +208,6 @@
   @keyframes flashVal { 0%,100%{opacity:1} 50%{opacity:.4} }
 
   /* FOOTER */
-  .ad-slot { width: 100%; overflow: hidden; background: transparent; text-align: center; margin: 0 auto; }
-  .ad-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin-bottom: 4px; font-family: var(--font-ui); }
-  .ad-container { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 20px; text-align: center; }
-  .qp-btn { padding:6px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s; }
-  .qp-btn:hover, .qp-btn.active { background:rgba(59,97,198,0.12);border-color:var(--accent);color:var(--accent); }
   footer { margin-top: 56px; text-align: center; font-size: 12.5px; color: var(--text2); letter-spacing: -.01em; line-height: 1.6; }
 </style>
 </head>
@@ -364,20 +357,6 @@
     <div class="kpi blue"><div class="kpi-label">Monthly revenue</div><div class="kpi-value" id="k-revenue">₱0</div><div class="kpi-sub">gross sales</div></div>
   </div>
 
-  <!-- AD SLOT 1: Below KPI strip -->
-  <div class="ad-container">
-    <div class="ad-label">Advertisement</div>
-    <div class="ad-slot">
-      <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-        data-ad-slot="XXXXXXXXXX"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-  </div>
-
   <div class="main-grid">
     <div class="left-col">
 
@@ -440,8 +419,8 @@
           <div style="margin-top:16px;">
             <div class="field">
               <label class="field-label">Failed print rate <span class="field-hint" id="fail-hint">how often a plate fails</span></label>
-              <div class="input-wrap" style="position:relative;">
-                <input type="number" id="i-fail" value="0" min="0" style="-moz-appearance:textfield;padding-right:28px;" max="60" step="1" class="has-suffix"
+              <div class="input-wrap">
+                <input type="number" id="i-fail" value="0" min="0" max="60" step="1" class="has-suffix"
                   oninput="g('fail-hint').textContent=failHint(+this.value);calc()"
                   onfocus="if(this.value==='0')this.value=''"
                   onblur="if(this.value===''||this.value==='-')this.value='0'">
@@ -497,35 +476,6 @@
         </div>
       </div>
 
-      <!-- MONTHLY FIXED COSTS -->
-      <div class="section sec-overhead" id="sec-monthly-fixed">
-        <div class="section-header" onclick="toggleSection('sec-monthly-fixed')">
-          <div class="section-icon">📅</div>
-          <div class="section-title">Monthly Fixed Costs</div>
-          <span class="section-chevron">▼</span>
-        </div>
-        <div class="section-body">
-          <div style="font-size:12px;color:var(--text2);margin-bottom:14px;font-family:var(--font-ui);line-height:1.6;">
-            Monthly costs are divided by your target units to get a per-item overhead cost.
-          </div>
-          <div id="fixed-costs-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
-          <button id="btn-add-fixed-cost" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(59,97,198,0.08);border:1px dashed rgba(59,97,198,0.3);border-radius:8px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(59,97,198,0.14)'" onmouseout="this.style.background='rgba(59,97,198,0.08)'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add fixed cost
-          </button>
-          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <span style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--font-ui);">Total monthly fixed costs</span>
-              <span style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--accent);" id="fixed-total">₱0.00</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:12px;font-weight:500;color:var(--text3);font-family:var(--font-ui);">Per item cost (÷ monthly units)</span>
-              <span style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text2);" id="fixed-per-item">₱0.00</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- FEES -->
       <div class="section sec-fees" id="sec-fees">
         <div class="section-header" onclick="toggleSection('sec-fees')">
@@ -536,23 +486,23 @@
         <div class="section-body">
           <div class="input-grid">
             <div class="field">
-              <label class="field-label">Platform fee <span class="field-hint">Shopee ~25%, TikTok ~8%</span></label>
-              <div class="input-wrap" style="position:relative;">
-                <input type="number" id="i-platform" value="0" min="0" style="-moz-appearance:textfield;padding-right:28px;" max="100" step="0.5" class="has-suffix" oninput="calc()" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value===''||this.value==='-')this.value='0'">
+              <label class="field-label">Platform fee <span class="field-hint">Shopee ~25%, TikTok ~8%, Lazada ~22%</span></label>
+              <div class="input-wrap">
+                <input type="number" id="i-platform" value="0" min="0" max="100" step="0.5" class="has-suffix" oninput="calc()" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value===''||this.value==='-')this.value='0'">
                 <span class="input-suffix">%</span>
               </div>
             </div>
             <div class="field">
               <label class="field-label">Affiliate commission <span class="field-hint">% paid to affiliates</span></label>
-              <div class="input-wrap" style="position:relative;">
-                <input type="number" id="i-affiliate" value="0" min="0" style="-moz-appearance:textfield;padding-right:28px;" max="100" step="0.5" class="has-suffix" oninput="calc()" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value===''||this.value==='-')this.value='0'">
+              <div class="input-wrap">
+                <input type="number" id="i-affiliate" value="0" min="0" max="100" step="0.5" class="has-suffix" oninput="calc()" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value===''||this.value==='-')this.value='0'">
                 <span class="input-suffix">%</span>
               </div>
             </div>
             <div class="field">
               <label class="field-label">Tax rate <span class="field-hint">VAT or income tax</span></label>
-              <div class="input-wrap" style="position:relative;">
-                <input type="number" id="i-tax" value="0" min="0" style="-moz-appearance:textfield;padding-right:28px;" max="100" step="0.5" class="has-suffix" oninput="calc()" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value===''||this.value==='-')this.value='0'">
+              <div class="input-wrap">
+                <input type="number" id="i-tax" value="0" min="0" max="100" step="0.5" class="has-suffix" oninput="calc()" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value===''||this.value==='-')this.value='0'">
                 <span class="input-suffix">%</span>
               </div>
             </div>
@@ -628,7 +578,6 @@
         <div class="bar-row"><span class="bar-label">Platform fee</span><div class="bar-track"><div class="bar-fill" id="bf-plat" style="background:#888780"></div></div><span class="bar-amt" id="ba-plat">₱0</span></div>
         <div class="bar-row"><span class="bar-label">Affiliate</span><div class="bar-track"><div class="bar-fill" id="bf-aff" style="background:#d4537e"></div></div><span class="bar-amt" id="ba-aff">₱0</span></div>
         <div class="bar-row"><span class="bar-label">Hardware & Components</span><div class="bar-track"><div class="bar-fill" id="bf-mat" style="background:#20b2aa"></div></div><span class="bar-amt" id="ba-mat">₱0</span></div>
-        <div class="bar-row"><span class="bar-label">Monthly fixed costs</span><div class="bar-track"><div class="bar-fill" id="bf-fixed" style="background:#9b59b6"></div></div><span class="bar-amt" id="ba-fixed">₱0</span></div>
       </div>
 
       <div class="panel-divider"></div>
@@ -644,7 +593,6 @@
         </div>
         <div class="breakdown-row"><span class="breakdown-name">− Production cost</span><span class="breakdown-val" id="bd-prod" style="color:var(--red)">−₱0</span></div>
         <div class="breakdown-row"><span class="breakdown-name">− Hardware & Components</span><span class="breakdown-val" id="bd-mat" style="color:var(--red)">−₱0</span></div>
-        <div class="breakdown-row"><span class="breakdown-name">− Monthly fixed costs</span><span class="breakdown-val" id="bd-fixed" style="color:var(--red)">−₱0</span></div>
         <div class="breakdown-row total"><span class="breakdown-name">= Net profit</span><span class="breakdown-val" id="bd-profit">₱0</span></div>
       </div>
 
@@ -683,164 +631,6 @@
           <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--font-ui);" id="pm-filament-sub"></div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- PROFIT GOAL CALCULATOR -->
-  <div class="section" style="margin-top:24px;" id="sec-goal">
-    <div class="section-header" onclick="toggleSection('sec-goal')">
-      <div class="section-icon" style="background:rgba(26,184,122,0.1);">🎯</div>
-      <div class="section-title">Profit Goal Calculator</div>
-      <span class="section-chevron">▼</span>
-    </div>
-    <div class="section-body">
-      <p style="font-size:13px;color:var(--text2);margin-bottom:20px;font-family:var(--font-ui);line-height:1.6;">Set a monthly profit target — see exactly how many units to sell or what price to charge.</p>
-
-      <!-- INPUT -->
-      <div class="field" style="margin-bottom:24px;">
-        <label class="field-label">I want to earn per month <span class="field-hint">your profit goal</span></label>
-        <div class="input-wrap"><span class="input-prefix">₱</span><input type="text" inputmode="numeric" id="i-goal" placeholder="e.g. 10,000" class="has-prefix" oninput="calcGoal()"></div>
-      </div>
-
-      <!-- OPTIONS A & B -->
-      <div id="goal-results" style="display:none;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-
-          <!-- OPTION A -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-              <div style="width:32px;height:32px;background:rgba(255,140,90,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">📦</div>
-              <div>
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--font-ui);">Option A</div>
-                <div style="font-size:13px;font-weight:700;color:var(--text);font-family:var(--font-ui);">Keep price, sell more</div>
-              </div>
-            </div>
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">Units to sell per month</div>
-            <div style="font-family:var(--font-mono);font-size:32px;font-weight:700;color:var(--accent);margin-bottom:6px;" id="goal-units-needed">—</div>
-            <div style="font-size:12px;color:var(--text3);font-family:var(--font-ui);margin-bottom:16px;" id="goal-a-sub">—</div>
-            <button onclick="applyGoalUnits()" style="padding:9px 18px;background:var(--accent);border:none;border-radius:8px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:#fff;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--navy)'" onmouseout="this.style.background='var(--accent)'">Set as target units</button>
-          </div>
-
-          <!-- OPTION B -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-              <div style="width:32px;height:32px;background:rgba(26,184,122,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">💰</div>
-              <div>
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--font-ui);">Option B</div>
-                <div style="font-size:13px;font-weight:700;color:var(--text);font-family:var(--font-ui);">Keep volume, raise price</div>
-              </div>
-            </div>
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">Sell at</div>
-            <div style="font-family:var(--font-mono);font-size:32px;font-weight:700;color:var(--green);margin-bottom:6px;" id="goal-price-needed">—</div>
-            <div style="font-size:12px;color:var(--text3);font-family:var(--font-ui);margin-bottom:16px;" id="goal-b-sub">—</div>
-            <button onclick="applyGoalPrice()" style="padding:9px 18px;background:var(--green);border:none;border-radius:8px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:#fff;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#179e67'" onmouseout="this.style.background='var(--green)'">Apply this price</button>
-          </div>
-        </div>
-
-        <!-- VERDICT -->
-        <div id="goal-feasibility" style="padding:14px 16px;border-radius:10px;font-size:13px;font-family:var(--font-ui);line-height:1.6;display:none;"></div>
-
-        <!-- UNITS BREAKDOWN -->
-        <div style="margin-top:16px;">
-          <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px;font-family:var(--font-ui);">Units you need to sell</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;font-family:var(--font-ui);">Per day</div>
-              <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent);" id="goal-per-day">—</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;font-family:var(--font-ui);">Per week</div>
-              <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent);" id="goal-per-week">—</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;font-family:var(--font-ui);">Per month</div>
-              <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--text);" id="goal-per-month">—</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;font-family:var(--font-ui);">Per year</div>
-              <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--text);" id="goal-per-year">—</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="goal-empty" style="font-size:13px;color:var(--text3);font-family:var(--font-ui);">Enter your monthly profit goal above to see what it takes to get there.</div>
-    </div>
-  </div>
-
-  <!-- SALE / VOUCHER SIMULATOR -->
-  <div class="section" style="margin-top:24px;" id="sec-voucher">
-    <div class="section-header" onclick="toggleSection('sec-voucher')">
-      <div class="section-icon" style="background:rgba(255,82,82,0.1);">🏷️</div>
-      <div class="section-title">Sale / Voucher Simulator</div>
-      <span class="section-chevron">▼</span>
-    </div>
-    <div class="section-body">
-      <p style="font-size:13px;color:var(--text2);margin-bottom:20px;font-family:var(--font-ui);line-height:1.6;">Simulate a sale or voucher discount — see the impact on your profit before you run it.</p>
-
-      <!-- INPUT ROW -->
-      <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-        <div class="field" style="flex:1;min-width:160px;">
-          <label class="field-label">Discount value</label>
-          <div class="input-wrap" style="position:relative;">
-            <input type="text" inputmode="numeric" id="i-discount" placeholder="e.g. 10"
-              style="width:100%;padding:10px 40px 10px 13px;font-family:var(--font-mono);font-size:14px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;"
-              oninput="calcVoucher()"
-              onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'"
-              onblur="this.style.borderColor='';this.style.boxShadow=''">
-            <span id="discount-suffix" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text3);pointer-events:none;">%</span>
-          </div>
-        </div>
-
-        <!-- Toggle % Off / ₱ Off -->
-        <div style="display:flex;border:1px solid var(--border2);border-radius:9px;overflow:hidden;flex-shrink:0;height:42px;">
-          <button id="btn-pct-off" onclick="setDiscountMode('pct')"
-            style="padding:0 18px;font-family:var(--font-ui);font-size:13px;font-weight:600;border:none;cursor:pointer;background:var(--accent);color:#fff;transition:all .15s;">% Off</button>
-          <button id="btn-peso-off" onclick="setDiscountMode('peso')"
-            style="padding:0 18px;font-family:var(--font-ui);font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;color:var(--text2);transition:all .15s;">₱ Off</button>
-        </div>
-
-        <!-- Quick picks -->
-        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-          <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--font-ui);">Quick picks</span>
-          <button class="qp-btn" onclick="setQuickPick(5)">5%</button>
-          <button class="qp-btn" onclick="setQuickPick(10)">10%</button>
-          <button class="qp-btn" onclick="setQuickPick(15)">15%</button>
-          <button class="qp-btn" onclick="setQuickPick(20)">20%</button>
-          <button class="qp-btn" onclick="setQuickPick(25)">25%</button>
-        </div>
-      </div>
-
-      <!-- RESULTS -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;" id="voucher-results">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">Sale price</div>
-          <div style="font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--text);" id="v-sale-price">—</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">You receive</div>
-          <div style="font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--accent);" id="v-you-receive">—</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">Profit / item</div>
-          <div style="font-family:var(--font-mono);font-size:20px;font-weight:600;" id="v-profit">—</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">Margin</div>
-          <div style="font-family:var(--font-mono);font-size:20px;font-weight:600;" id="v-margin">—</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">Monthly profit</div>
-          <div style="font-family:var(--font-mono);font-size:20px;font-weight:600;" id="v-monthly">—</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;font-family:var(--font-ui);">Profit lost</div>
-          <div style="font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--red);" id="v-lost">—</div>
-        </div>
-      </div>
-
-      <!-- VERDICT -->
-      <div id="v-verdict" style="margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13px;font-family:var(--font-ui);display:none;"></div>
     </div>
   </div>
 
@@ -890,20 +680,6 @@
     </div>
   </div>
 
-  <!-- AD SLOT 2: Above footer -->
-  <div class="ad-container" style="margin-top:40px;">
-    <div class="ad-label">Advertisement</div>
-    <div class="ad-slot">
-      <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-        data-ad-slot="XXXXXXXXXX"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-  </div>
-
   <footer>
     <div style="margin-bottom:16px;">
       <a href="https://magras01.github.io/niwc" target="_blank" style="font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;font-family:var(--font-ui);">NIWDE3D Pricing Calculator</a>
@@ -939,7 +715,7 @@ function updateSlider(sid, oid, hid, sfx='%', pre='', hintFn=null){
 
 
 // ── COMMA-FORMATTED INPUTS ────────────────────────────────────────
-const COMMA_INPUTS = ['i-printercost','i-lifespan','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units','i-target-profit','i-goal'];
+const COMMA_INPUTS = ['i-printercost','i-lifespan','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units','i-target-profit'];
 
 function rawVal(id){
   const v = document.getElementById(id).value.replace(/,/g,'');
@@ -979,88 +755,6 @@ function n(id){
   const el = document.getElementById(id);
   if(!el) return 0;
   return parseFloat(el.value.replace(/,/g,'')) || 0;
-}
-
-// ── MONTHLY FIXED COSTS ───────────────────────────────────────────
-let fixedId = 0;
-const fixedCosts = {};
-
-function addFixedCost(name='', cost=''){
-  const id = ++fixedId;
-  fixedCosts[id] = { name, cost: parseFloat(cost)||0 };
-  const row = document.createElement('div');
-  row.id = 'fixed-row-' + id;
-  row.style.cssText = 'display:flex;align-items:center;gap:8px;';
-  row.innerHTML = `
-    <input type="text" placeholder="e.g. Rent, Internet, Canva…" value="${name}"
-      style="flex:1;font-family:var(--font-ui);font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);outline:none;"
-      oninput="fixedCosts[${id}].name=this.value"
-      onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'"
-      onblur="this.style.borderColor='';this.style.boxShadow=''">
-    <div style="position:relative;width:120px;flex-shrink:0;">
-      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:13px;color:var(--text3);pointer-events:none;">₱</span>
-      <input type="text" inputmode="numeric" placeholder="0" value="${cost ? formatComma(cost) : ''}"
-        style="width:100%;padding:9px 10px 9px 22px;font-family:var(--font-mono);font-size:13px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);outline:none;"
-        oninput="
-          const raw=this.value.replace(/,/g,'');
-          if(raw===''||raw==='.'||raw.endsWith('.')){fixedCosts[${id}].cost=parseFloat(raw)||0;updateFixedTotal();calc();return;}
-          if(isNaN(parseFloat(raw))) return;
-          const pos=this.selectionStart,oldLen=this.value.length;
-          this.value=formatComma(raw);
-          const newLen=this.value.length;
-          this.setSelectionRange(pos+(newLen-oldLen),pos+(newLen-oldLen));
-          fixedCosts[${id}].cost=parseFloat(raw)||0;updateFixedTotal();calc()"
-        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(59,97,198,0.1)'"
-        onblur="this.style.borderColor='';this.style.boxShadow=''">
-    </div>
-    <span style="font-size:10px;color:var(--text3);font-family:var(--font-ui);min-width:48px;text-align:right;" id="fixed-pi-${id}">₱0/item</span>
-    <button onclick="removeFixedCost(${id})" title="Remove"
-      style="width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(232,64,64,0.08);border:1px solid rgba(232,64,64,0.2);border-radius:7px;cursor:pointer;color:var(--red);transition:all .15s;"
-      onmouseover="this.style.background='rgba(232,64,64,0.16)'" onmouseout="this.style.background='rgba(232,64,64,0.08)'">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>`;
-  document.getElementById('fixed-costs-list').appendChild(row);
-  updateFixedTotal();
-}
-
-function removeFixedCost(id){
-  delete fixedCosts[id];
-  const row = document.getElementById('fixed-row-' + id);
-  if(row) row.remove();
-  updateFixedTotal();
-  calc();
-}
-
-function updateFixedTotal(){
-  const total = getFixedTotal();
-  const units = n('i-units') || 1;
-  const perItem = total / units;
-  g('fixed-total').textContent = '₱' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
-  g('fixed-per-item').textContent = '₱' + perItem.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
-  // update each row's per-item hint
-  Object.keys(fixedCosts).forEach(id => {
-    const el = document.getElementById('fixed-pi-' + id);
-    if(el) el.textContent = '₱' + (fixedCosts[id].cost / units).toFixed(2) + '/item';
-  });
-}
-
-function getFixedTotal(){
-  return Object.values(fixedCosts).reduce((s,c)=>s+(c.cost||0), 0);
-}
-
-function getFixedPerItem(){
-  const units = n('i-units') || 1;
-  return getFixedTotal() / units;
-}
-
-function resetFixedCosts(){
-  Object.keys(fixedCosts).forEach(id => {
-    delete fixedCosts[id];
-    const row = document.getElementById('fixed-row-' + id);
-    if(row) row.remove();
-  });
-  g('fixed-total').textContent = '₱0.00';
-  g('fixed-per-item').textContent = '₱0.00';
 }
 
 // ── OTHER MATERIALS ───────────────────────────────────────────────
@@ -1154,7 +848,7 @@ function calc(){
   const depPerPlate  = (printerCost/lifespan) * printTime;
   const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
   const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
-  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal() + getFixedPerItem();
+  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal();
 
   const platFee  = price * platform;
   const affFee   = price * affiliate;
@@ -1210,8 +904,6 @@ function calc(){
   g('bd-payout').textContent = fmt(netRev);
   g('bd-prod').textContent  = '−'+fmt(prodCost);
   g('bd-mat').textContent   = getMatTotal() > 0 ? '−'+fmt(getMatTotal()) : '₱0';
-  g('bd-fixed').textContent = getFixedPerItem() > 0 ? '−'+fmt(getFixedPerItem()) : '₱0';
-  updateFixedTotal();
   g('bd-profit').textContent = (profit >= 0 ? '' : '−') + fmt(profit);
   g('bd-profit').style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
 
@@ -1268,7 +960,6 @@ function calc(){
     {id:'plat', val: platFee},
     {id:'aff',  val: affFee},
     {id:'mat',  val: getMatTotal()},
-    {id:'fixed',val: getFixedPerItem()},
   ];
   const maxV = Math.max(...comps.map(c=>c.val), 1);
   comps.forEach(c => {
@@ -1287,9 +978,6 @@ function calc(){
 
   // Refresh price comparison table
   if(typeof renderPriceTable === 'function') renderPriceTable();
-
-  // Refresh profit goal
-  if(typeof calcGoal === 'function') calcGoal();
 }
 
 function setKpi(id, val){
@@ -1410,11 +1098,7 @@ function resetDefaults(){
   userSetup = {printercost:'',lifespan:'',printtime:'',items:'',watts:'',filament:'',filamentcost:'',elec:'',fail:0,platform:0,affiliate:0,tax:0,packaging:'',labor:'',price:'',units:'',name:''};
   activeProduct = null;
   resetMaterials();
-  resetFixedCosts();
-  ['i-printercost','i-lifespan','i-printtime','i-items','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units','i-target-profit','i-goal'].forEach(id=>g(id).value='');
-  g('goal-results').style.display = 'none';
-  g('goal-empty').style.display   = 'block';
-  g('goal-feasibility').style.display = 'none';
+  ['i-printercost','i-lifespan','i-printtime','i-items','i-watts','i-filament','i-filamentcost','i-elec','i-packaging','i-labor','i-price','i-units','i-target-profit'].forEach(id=>g(id).value='');
   g('target-price-out').textContent = '—';
   g('btn-apply-target').style.display = 'none';
   g('i-fail').value=0;
@@ -1427,7 +1111,7 @@ function resetDefaults(){
   g('k-margin').textContent='0%';
   g('k-profit-card').className='kpi blue'; g('k-margin-card').className='kpi blue'; g('k-monthly-card').className='kpi blue'; g('k-suggested-card').className='kpi blue';
   g('k-suggested-sub').textContent='3× production cost';
-  ['elec','fil','dep','fail','pack','lab','plat','aff','mat','fixed'].forEach(id=>{g('bf-'+id).style.width='0%';g('ba-'+id).textContent='₱0';});
+  ['elec','fil','dep','fail','pack','lab','plat','aff','mat'].forEach(id=>{g('bf-'+id).style.width='0%';g('ba-'+id).textContent='₱0';});
   g('bd-price').textContent='₱0'; g('bd-plat').textContent='−₱0'; g('bd-aff').textContent='−₱0'; g('bd-tax').textContent='−₱0'; g('bd-payout').textContent='₱0'; g('bd-prod').textContent='−₱0'; g('bd-mat').textContent='₱0'; g('bd-profit').textContent='₱0';
   g('pm-profit').textContent='₱0'; g('pm-revenue').textContent='₱0'; g('pm-bep').textContent='₱0'; g('pm-units').textContent='—'; g('pm-overhead').textContent='₱0'; g('pm-overhead-sub').textContent=''; g('pm-roi').textContent='—'; g('pm-roi').style.color=''; g('pm-roi-sub').textContent=''; g('pm-filament').textContent='₱0'; g('pm-filament-sub').textContent='';
   g('warnBanner').classList.remove('show');
@@ -1589,7 +1273,6 @@ document.getElementById('import-file-input').addEventListener('change', function
   this.value = '';
 });
 document.getElementById('btn-add-material').addEventListener('click', ()=> addMaterial());
-document.getElementById('btn-add-fixed-cost').addEventListener('click', ()=> addFixedCost());
 
 // ── TARGET PROFIT ─────────────────────────────────────────────────
 function calcTargetPrice(){
@@ -1625,7 +1308,7 @@ function calcTargetPrice(){
   const depPerPlate  = (printerCost/lifespan) * printTime;
   const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
   const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
-  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal() + getFixedPerItem();
+  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal();
 
   // required price = (prodCost + targetProfit) / (1 - platform - affiliate - tax)
   const denominator = Math.max(1 - platform - affiliate - tax, 0.01);
@@ -1760,7 +1443,7 @@ function calcRowData(price){
   const depPerPlate  = (printerCost/lifespan) * printTime;
   const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
   const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
-  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal() + getFixedPerItem();
+  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal();
   const bep          = prodCost / (Math.max(1 - platform - affiliate - tax, 0.01));
 
   const platFee  = price * platform;
@@ -1815,226 +1498,6 @@ function renderPriceTable(){
       </td>
     </tr>`;
   }).join('');
-}
-
-// ── SALE / VOUCHER SIMULATOR ──────────────────────────────────────
-let discountMode = 'pct'; // 'pct' or 'peso'
-
-function setDiscountMode(mode){
-  discountMode = mode;
-  g('btn-pct-off').style.background  = mode==='pct' ? 'var(--accent)' : 'transparent';
-  g('btn-pct-off').style.color       = mode==='pct' ? '#fff' : 'var(--text2)';
-  g('btn-peso-off').style.background = mode==='peso' ? 'var(--accent)' : 'transparent';
-  g('btn-peso-off').style.color      = mode==='peso' ? '#fff' : 'var(--text2)';
-  g('discount-suffix').textContent   = mode==='pct' ? '%' : '₱';
-  // reset quick picks label if switching to peso
-  document.querySelectorAll('.qp-btn').forEach(b=>b.classList.remove('active'));
-  calcVoucher();
-}
-
-function setQuickPick(val){
-  g('i-discount').value = val;
-  if(discountMode !== 'pct') setDiscountMode('pct');
-  document.querySelectorAll('.qp-btn').forEach(b=>{
-    b.classList.toggle('active', parseInt(b.textContent) === val);
-  });
-  calcVoucher();
-}
-
-function calcVoucher(){
-  const raw      = parseFloat(g('i-discount').value) || 0;
-  const price    = n('i-price');
-  const units    = n('i-units');
-
-  // get current profit per item
-  const printerCost = n('i-printercost');
-  const lifespan    = n('i-lifespan') || 1;
-  const printTime   = n('i-printtime');
-  const items       = n('i-items') || 1;
-  const watts       = n('i-watts');
-  const filament    = n('i-filament');
-  const filCost     = n('i-filamentcost');
-  const elecCost    = n('i-elec');
-  const failRate    = p('i-fail');
-  const platform    = p('i-platform');
-  const affiliate   = p('i-affiliate');
-  const tax         = p('i-tax');
-  const packaging   = n('i-packaging');
-  const labor       = n('i-labor');
-
-  const elecPerPlate = (watts/1000) * printTime * elecCost;
-  const filPerPlate  = (filament/1000) * filCost;
-  const depPerPlate  = (printerCost/lifespan) * printTime;
-  const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
-  const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
-  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal() + getFixedPerItem();
-
-  // calc original profit
-  const origNetRev   = price - price*platform - price*affiliate - price*tax;
-  const origProfit   = origNetRev - prodCost;
-  const origMonthly  = origProfit * units;
-
-  // apply discount
-  const salePrice = discountMode === 'pct'
-    ? price * (1 - raw/100)
-    : price - raw;
-
-  if(salePrice <= 0 || raw <= 0){ 
-    ['v-sale-price','v-you-receive','v-profit','v-margin','v-monthly','v-lost'].forEach(id=>g(id).textContent='—');
-    g('v-verdict').style.display = 'none';
-    return;
-  }
-
-  const salePlatFee = salePrice * platform;
-  const saleAffFee  = salePrice * affiliate;
-  const saleTaxFee  = salePrice * tax;
-  const saleNetRev  = salePrice - salePlatFee - saleAffFee - saleTaxFee;
-  const saleProfit  = saleNetRev - prodCost;
-  const saleMargin  = salePrice > 0 ? saleProfit / salePrice : 0;
-  const saleMonthly = saleProfit * units;
-  const profitLost  = origMonthly - saleMonthly;
-
-  g('v-sale-price').textContent  = fmt(salePrice);
-  g('v-you-receive').textContent = fmt(saleNetRev);
-  g('v-profit').textContent      = (saleProfit >= 0 ? '' : '−') + fmt(Math.abs(saleProfit));
-  g('v-profit').style.color      = saleProfit > 0 ? 'var(--green)' : saleProfit < 0 ? 'var(--red)' : 'var(--text)';
-  g('v-margin').textContent      = (saleMargin*100).toFixed(1) + '%';
-  g('v-margin').style.color      = saleMargin >= 0.15 ? 'var(--green)' : saleMargin < 0 ? 'var(--red)' : 'var(--yellow)';
-  g('v-monthly').textContent     = fmt(saleMonthly);
-  g('v-monthly').style.color     = saleMonthly > 0 ? 'var(--green)' : 'var(--red)';
-  g('v-lost').textContent        = '−' + fmt(Math.abs(profitLost));
-
-  // verdict
-  const verdict = g('v-verdict');
-  verdict.style.display = 'block';
-  if(saleProfit < 0){
-    verdict.style.cssText = 'margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13px;font-family:var(--font-ui);display:block;background:rgba(232,64,64,0.08);border:1px solid rgba(232,64,64,0.2);color:var(--red);';
-    verdict.innerHTML = `🔴 <strong>Don't run this sale.</strong> At ${discountMode==='pct'?raw+'% off':'₱'+raw+' off'}, you lose ${fmt(Math.abs(saleProfit))} per item. You're selling below cost.`;
-  } else if(saleMargin < 0.1){
-    verdict.style.cssText = 'margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13px;font-family:var(--font-ui);display:block;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);color:var(--yellow);';
-    verdict.innerHTML = `🟡 <strong>Risky sale.</strong> Margin drops to ${(saleMargin*100).toFixed(1)}% and you lose ${fmt(profitLost)}/month. Only run this if it brings in significantly more volume.`;
-  } else {
-    verdict.style.cssText = 'margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13px;font-family:var(--font-ui);display:block;background:rgba(26,184,122,0.08);border:1px solid rgba(26,184,122,0.2);color:var(--green);';
-    verdict.innerHTML = `✅ <strong>Safe to run.</strong> Even at ${discountMode==='pct'?raw+'% off':'₱'+raw+' off'}, you still earn ${fmt(saleProfit)}/item (${(saleMargin*100).toFixed(1)}% margin). Monthly profit drops by ${fmt(profitLost)}.`;
-  }
-}
-
-// ── PROFIT GOAL CALCULATOR ────────────────────────────────────────
-let _goalUnits = 0;
-let _goalPrice = 0;
-
-function getGoalCosts(){
-  const printerCost = n('i-printercost');
-  const lifespan    = n('i-lifespan') || 1;
-  const printTime   = n('i-printtime');
-  const items       = n('i-items') || 1;
-  const watts       = n('i-watts');
-  const filament    = n('i-filament');
-  const filCost     = n('i-filamentcost');
-  const elecCost    = n('i-elec');
-  const failRate    = p('i-fail');
-  const platform    = p('i-platform');
-  const affiliate   = p('i-affiliate');
-  const tax         = p('i-tax');
-  const packaging   = n('i-packaging');
-  const labor       = n('i-labor');
-  const elecPerPlate = (watts/1000) * printTime * elecCost;
-  const filPerPlate  = (filament/1000) * filCost;
-  const depPerPlate  = (printerCost/lifespan) * printTime;
-  const basePerItem  = (elecPerPlate + filPerPlate + depPerPlate) / items;
-  const wastePerItem = basePerItem * failRate / (Math.max(1-failRate, 0.01));
-  const prodCost     = basePerItem + wastePerItem + packaging + labor + getMatTotal() + getFixedPerItem();
-  return { prodCost, platform, affiliate, tax };
-}
-
-function calcGoal(){
-  const raw = g('i-goal').value.replace(/,/g,'');
-  const goalMonthly = parseFloat(raw);
-  const results = g('goal-results');
-  const empty   = g('goal-empty');
-  const feasEl  = g('goal-feasibility');
-
-  if(!raw || isNaN(goalMonthly) || goalMonthly <= 0){
-    results.style.display = 'none';
-    empty.style.display   = 'block';
-    feasEl.style.display  = 'none';
-    return;
-  }
-
-  const price       = n('i-price');
-  const targetUnits = n('i-units');
-  const { prodCost, platform, affiliate, tax } = getGoalCosts();
-  const denom       = Math.max(1 - platform - affiliate - tax, 0.01);
-  const netRev      = price - price*platform - price*affiliate - price*tax;
-  const profitPerItem = netRev - prodCost;
-  const currentMonthly = profitPerItem * targetUnits;
-
-  results.style.display = 'block';
-  empty.style.display   = 'none';
-
-  if(profitPerItem <= 0){
-    feasEl.style.cssText = 'padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font-ui);background:rgba(232,64,64,0.08);border:1px solid rgba(232,64,64,0.2);color:var(--red);display:block;margin-top:4px;';
-    feasEl.textContent   = '⚠️ Not profitable yet — fix your pricing first before setting a goal.';
-    g('goal-units-needed').textContent = '—';
-    g('goal-price-needed').textContent = '—';
-    g('goal-a-sub').textContent = '—';
-    g('goal-b-sub').textContent = '—';
-    g('goal-per-day').textContent = '—';
-    g('goal-per-week').textContent = '—';
-    g('goal-per-month').textContent = '—';
-    g('goal-per-year').textContent = '—';
-    return;
-  }
-
-  // Option A — keep price, sell more
-  const unitsNeeded = Math.ceil(goalMonthly / profitPerItem);
-  const unitsPerDay  = Math.ceil(unitsNeeded / 30);
-  const unitsPerWeek = Math.ceil(unitsNeeded / 4.3);
-  _goalUnits = unitsNeeded;
-  g('goal-units-needed').textContent = unitsNeeded.toLocaleString() + ' units';
-  g('goal-a-sub').textContent = `at ${fmt(price)} × ${fmt(profitPerItem)} profit each`;
-
-  // Units breakdown
-  g('goal-per-day').textContent   = unitsPerDay.toLocaleString();
-  g('goal-per-week').textContent  = unitsPerWeek.toLocaleString();
-  g('goal-per-month').textContent = unitsNeeded.toLocaleString();
-  g('goal-per-year').textContent  = (unitsNeeded * 12).toLocaleString();
-
-  // Option B — keep volume, raise price
-  // required: (salePrice * denom - prodCost) * targetUnits >= goalMonthly
-  // salePrice = (goalMonthly/targetUnits + prodCost) / denom
-  const refUnits  = targetUnits > 0 ? targetUnits : unitsNeeded;
-  const reqPrice  = (goalMonthly / refUnits + prodCost) / denom;
-  _goalPrice = reqPrice;
-  g('goal-price-needed').textContent = fmt(reqPrice);
-  g('goal-b-sub').textContent = `selling ${refUnits.toLocaleString()} units/month`;
-
-  // feasibility banner
-  feasEl.style.display = 'block';
-  if(currentMonthly >= goalMonthly){
-    feasEl.style.cssText = 'padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font-ui);background:rgba(26,184,122,0.08);border:1px solid rgba(26,184,122,0.2);color:var(--green);display:block;margin-top:4px;';
-    feasEl.innerHTML = `✅ You're already hitting your goal! Current monthly profit: <strong>${fmt(currentMonthly)}</strong>.`;
-  } else if(targetUnits > 0 && unitsNeeded <= targetUnits * 1.3){
-    feasEl.style.cssText = 'padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font-ui);background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);color:var(--yellow);display:block;margin-top:4px;';
-    feasEl.innerHTML = `🟡 Close! You need <strong>${unitsNeeded}</strong> units but targeting <strong>${targetUnits}</strong>. Small price increase or volume boost gets you there.`;
-  } else {
-    feasEl.style.cssText = 'padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font-ui);background:rgba(59,97,198,0.08);border:1px solid rgba(59,97,198,0.2);color:var(--accent);display:block;margin-top:4px;';
-    feasEl.innerHTML = `💡 Choose Option A (sell <strong>${unitsNeeded} units/month</strong>) or Option B (raise price to <strong>${fmt(reqPrice)}</strong>) to hit your goal.`;
-  }
-}
-
-function applyGoalUnits(){
-  if(!_goalUnits) return;
-  setFmt('i-units', _goalUnits);
-  calc();
-  showToast(`Target units set to ${_goalUnits.toLocaleString()}!`);
-}
-
-function applyGoalPrice(){
-  if(!_goalPrice) return;
-  setFmt('i-price', _goalPrice.toFixed(2));
-  calc();
-  showToast(`Selling price updated to ${fmt(_goalPrice)}!`);
 }
 
 // ── CUSTOM PRESETS ────────────────────────────────────────────────
@@ -2242,7 +1705,6 @@ function confirmSave(){
     name,
     savedAt: new Date().toLocaleDateString('en-PH', {month:'short',day:'numeric',year:'numeric'}),
     matSnapshot: Object.values(materials).map(m=>({name:m.name,cost:m.cost})),
-    fixedSnapshot: Object.values(fixedCosts).map(c=>({name:c.name,cost:c.cost})),
   };
   setSaved(data);
   closeSaveModal();
@@ -2257,8 +1719,6 @@ function loadProduct(name){
   // restore materials
   resetMaterials();
   if(p.matSnapshot) p.matSnapshot.forEach(m => addMaterial(m.name, m.cost));
-  resetFixedCosts();
-  if(p.fixedSnapshot) p.fixedSnapshot.forEach(c => addFixedCost(c.name, c.cost));
   userSetup = p;
   applyFields(p);
   activeProduct = name;
@@ -2293,7 +1753,6 @@ function updateProduct(){
     name: newName,
     savedAt: new Date().toLocaleDateString('en-PH', {month:'short',day:'numeric',year:'numeric'}),
     matSnapshot: Object.values(materials).map(m=>({name:m.name,cost:m.cost})),
-    fixedSnapshot: Object.values(fixedCosts).map(c=>({name:c.name,cost:c.cost})),
   };
   setSaved(data);
   activeProduct = newName;
